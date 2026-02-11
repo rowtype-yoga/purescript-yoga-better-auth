@@ -1,0 +1,35 @@
+workspace:
+  packageSet:
+    registry: 73.0.0
+  extraPackages:
+    yoga-fastify: "0.2.3"
+    yoga-http-api: "0.1.4"
+    yoga-options: "0.1.0"
+
+package:
+  name: yoga-better-auth
+  publish:
+    version: 0.1.0
+    license: MIT
+    location:
+      githubOwner: rowtype-yoga
+      githubRepo: purescript-yoga-better-auth
+  dependencies:
+    - aff: ">=7.0.0 <9.0.0"
+    - effect: ">=4.0.0 <5.0.0"
+    - either: ">=6.1.0 <7.0.0"
+    - foreign: ">=7.0.0 <8.0.0"
+    - js-promise: ">=1.0.0 <2.0.0"
+    - js-promise-aff: ">=1.0.0 <2.0.0"
+    - maybe: ">=6.0.0 <7.0.0"
+    - newtype: ">=5.0.0 <6.0.0"
+    - nullable: ">=6.0.0 <7.0.0"
+    - prelude: ">=6.0.2 <7.0.0"
+    - strings: ">=6.0.1 <7.0.0"
+    - unsafe-coerce: ">=6.0.0 <7.0.0"
+    - yoga-fastify: ">=0.2.3 <0.3.0"
+  test:
+    main: Test.BetterAuth.Main
+    dependencies:
+      - console: ">=6.0.0 <7.0.0"
+      - spec: ">=7.0.0 <8.0.0"

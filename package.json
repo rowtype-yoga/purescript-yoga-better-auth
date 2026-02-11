@@ -1,0 +1,16 @@
+{
+  "name": "purescript-yoga-better-auth",
+  "version": "0.1.0",
+  "description": "PureScript FFI bindings for better-auth",
+  "license": "MIT",
+  "keywords": [
+    "purescript",
+    "ffi",
+    "bindings",
+    "yoga",
+    "auth"
+  ],
+  "dependencies": {
+    "better-auth": "^1.4.18"
+  }
+}
