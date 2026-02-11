@@ -4,6 +4,8 @@ import Data.Nullable (Nullable)
 
 foreign import data Auth :: Type
 
+foreign import data Api :: Type
+
 foreign import data AuthClient :: Type
 
 type User =

@@ -4,12 +4,12 @@ export const betterAuthImpl = (opts) => betterAuth(opts);
 
 export const handlerImpl = (auth, request) => auth.handler(request);
 
-export const getSessionImpl = (auth, opts) => auth.api.getSession(opts);
+export const apiImpl = (auth) => auth.api;
 
-export const signInEmailImpl = (auth, body) =>
-  auth.api.signInEmail({ body });
+export const getSessionImpl = (api, opts) => api.getSession(opts);
 
-export const signUpEmailImpl = (auth, body) =>
-  auth.api.signUpEmail({ body });
+export const signInEmailImpl = (api, opts) => api.signInEmail(opts);
 
-export const signOutImpl = (auth, opts) => auth.api.signOut(opts);
+export const signUpEmailImpl = (api, opts) => api.signUpEmail(opts);
+
+export const signOutImpl = (api, opts) => api.signOut(opts);

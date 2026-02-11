@@ -2,6 +2,7 @@ module Yoga.BetterAuth.BetterAuth
   ( module Yoga.BetterAuth.Types
   , betterAuth
   , handler
+  , api
   , BetterAuthOptionsImpl
   , EmailAndPassword
   , emailAndPassword
@@ -22,8 +23,8 @@ import Promise.Aff as Promise
 import Effect.Aff (Aff)
 import Prim.Row (class Union)
 import Unsafe.Coerce (unsafeCoerce)
-import Yoga.BetterAuth.Types (Auth, SessionWithUser, SignUpResult, SignInResult)
-import Yoga.BetterAuth.Types (Auth, AuthClient, User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
+import Yoga.BetterAuth.Types (Api, Auth, SessionWithUser, SignUpResult, SignInResult)
+import Yoga.BetterAuth.Types (Api, Auth, AuthClient, User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
 
 type BetterAuthOptionsImpl =
   ( appName :: String
@@ -61,22 +62,27 @@ foreign import handlerImpl :: EffectFn2 Auth Foreign (Promise Foreign)
 handler :: Auth -> Foreign -> Aff Foreign
 handler auth request = runEffectFn2 handlerImpl auth request # Promise.toAffE
 
-foreign import getSessionImpl :: EffectFn2 Auth { headers :: Foreign } (Promise SessionWithUser)
+foreign import apiImpl :: EffectFn1 Auth Api
 
-getSession :: { headers :: Foreign } -> Auth -> Aff SessionWithUser
-getSession opts auth = runEffectFn2 getSessionImpl auth opts # Promise.toAffE
+api :: Auth -> Effect Api
+api auth = runEffectFn1 apiImpl auth
 
-foreign import signInEmailImpl :: EffectFn2 Auth { email :: String, password :: String } (Promise SignInResult)
+foreign import getSessionImpl :: EffectFn2 Api { headers :: Foreign } (Promise SessionWithUser)
 
-signInEmail :: { email :: String, password :: String } -> Auth -> Aff SignInResult
-signInEmail body auth = runEffectFn2 signInEmailImpl auth body # Promise.toAffE
+getSession :: { headers :: Foreign } -> Api -> Aff SessionWithUser
+getSession opts a = runEffectFn2 getSessionImpl a opts # Promise.toAffE
 
-foreign import signUpEmailImpl :: EffectFn2 Auth { email :: String, password :: String, name :: String } (Promise SignUpResult)
+foreign import signInEmailImpl :: EffectFn2 Api { body :: { email :: String, password :: String } } (Promise SignInResult)
 
-signUpEmail :: { email :: String, password :: String, name :: String } -> Auth -> Aff SignUpResult
-signUpEmail body auth = runEffectFn2 signUpEmailImpl auth body # Promise.toAffE
+signInEmail :: { email :: String, password :: String } -> Api -> Aff SignInResult
+signInEmail body a = runEffectFn2 signInEmailImpl a { body } # Promise.toAffE
 
-foreign import signOutImpl :: EffectFn2 Auth { headers :: Foreign } (Promise Unit)
+foreign import signUpEmailImpl :: EffectFn2 Api { body :: { email :: String, password :: String, name :: String } } (Promise SignUpResult)
 
-signOut :: { headers :: Foreign } -> Auth -> Aff Unit
-signOut opts auth = runEffectFn2 signOutImpl auth opts # Promise.toAffE
+signUpEmail :: { email :: String, password :: String, name :: String } -> Api -> Aff SignUpResult
+signUpEmail body a = runEffectFn2 signUpEmailImpl a { body } # Promise.toAffE
+
+foreign import signOutImpl :: EffectFn2 Api { headers :: Foreign } (Promise Unit)
+
+signOut :: { headers :: Foreign } -> Api -> Aff Unit
+signOut opts a = runEffectFn2 signOutImpl a opts # Promise.toAffE
