@@ -7,6 +7,8 @@ export const betterAuthImpl = (opts) => betterAuth(opts);
 export const pgPoolImpl = (connectionString) =>
   new pg.Pool({ connectionString });
 
+export const pgPoolEndImpl = (pool) => pool.end();
+
 export const runMigrationsImpl = (auth) =>
   getMigrations(auth.options).then(({ runMigrations }) => runMigrations());
 

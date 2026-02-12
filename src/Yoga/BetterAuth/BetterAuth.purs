@@ -4,6 +4,7 @@ module Yoga.BetterAuth.BetterAuth
   , handler
   , api
   , pgPool
+  , pgPoolEnd
   , runMigrations
   , BetterAuthOptionsImpl
   , EmailAndPassword
@@ -51,6 +52,11 @@ foreign import pgPoolImpl :: EffectFn1 String Database
 
 pgPool :: String -> Effect Database
 pgPool = runEffectFn1 pgPoolImpl
+
+foreign import pgPoolEndImpl :: Database -> Promise Unit
+
+pgPoolEnd :: Database -> Aff Unit
+pgPoolEnd db = pgPoolEndImpl db # Promise.toAff
 
 foreign import runMigrationsImpl :: Auth -> Promise Unit
 

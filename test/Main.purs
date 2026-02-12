@@ -3,16 +3,18 @@ module Test.BetterAuth.Main where
 import Prelude
 
 import Data.Either (Either(..))
+import Data.Maybe (Maybe(..))
 import Data.Newtype (un)
 import Data.String as String
 import Data.Time.Duration (Milliseconds(..))
 import Effect (Effect)
-import Effect.Aff (Aff, bracket, launchAff_)
+import Effect.Aff (Aff, launchAff_)
 import Effect.Class (liftEffect)
 import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy, fail)
+import Test.Spec.Config (defaultConfig)
 import Test.Spec.Reporter.Console (consoleReporter)
-import Test.Spec.Runner (runSpec)
+import Test.Spec.Runner (runSpecPure')
 import Yoga.BetterAuth.BetterAuth as Server
 import Yoga.BetterAuth.Client as Client
 import Yoga.BetterAuth.Om as AuthOm
@@ -30,7 +32,7 @@ mkClient = do
     }
   Client.createTestClient "http://localhost:3000" auth
 
-mkPostgresClient :: Aff AuthClient
+mkPostgresClient :: Aff { client :: AuthClient, db :: Server.Database }
 mkPostgresClient = do
   let connectionString = "postgresql://test:test@localhost:5433/better_auth_test"
   db <- Server.pgPool connectionString # liftEffect
@@ -42,7 +44,8 @@ mkPostgresClient = do
       , emailAndPassword: Server.emailAndPassword { enabled: true }
       } # liftEffect
   Server.runMigrations auth
-  Client.createTestClient "http://localhost:3000" auth # liftEffect
+  client <- Client.createTestClient "http://localhost:3000" auth # liftEffect
+  pure { client, db }
 
 runAuth :: forall a. AuthClient -> Om.Om { authClient :: AuthClient } (authError :: Client.ClientError) a -> Aff a
 runAuth client = Om.runOm { authClient: client }
@@ -58,7 +61,9 @@ composeFile = Docker.ComposeFile "docker-compose.test.yml"
 
 main :: Effect Unit
 main = launchAff_ do
-  runSpec [ consoleReporter ] do
+  let config = defaultConfig { timeout = Just (Milliseconds 60000.0) }
+
+  runSpecPure' config [ consoleReporter ] do
 
     describe "Yoga.BetterAuth.Om" do
 
@@ -109,15 +114,14 @@ main = launchAff_ do
     describe "Yoga.BetterAuth.Om (Postgres)" do
 
       it "sign up and sign in with real Postgres" do
-        bracket
-          (Docker.startService composeFile (Docker.Timeout (Milliseconds 30000.0)))
-          (\_ -> Docker.stopService composeFile)
-          \_ -> do
-            client <- mkPostgresClient
-            { user } <- runAuth client do
-              AuthOm.clientSignUpEmail { email: Email "pg@test.com", password: Password "password123", name: UserName "PgUser" }
-            user.email `shouldEqual` Email "pg@test.com"
-            user.name `shouldEqual` UserName "PgUser"
-            { token } <- runAuth client do
-              AuthOm.clientSignInEmail { email: Email "pg@test.com", password: Password "password123" }
-            un Token token `shouldSatisfy` (not <<< String.null)
+        Docker.startService composeFile (Docker.Timeout (Milliseconds 30000.0))
+        { client, db } <- mkPostgresClient
+        { user } <- runAuth client do
+          AuthOm.clientSignUpEmail { email: Email "pg@test.com", password: Password "password123", name: UserName "PgUser" }
+        user.email `shouldEqual` Email "pg@test.com"
+        user.name `shouldEqual` UserName "PgUser"
+        { token } <- runAuth client do
+          AuthOm.clientSignInEmail { email: Email "pg@test.com", password: Password "password123" }
+        un Token token `shouldSatisfy` (not <<< String.null)
+        Server.pgPoolEnd db
+        Docker.stopService composeFile
