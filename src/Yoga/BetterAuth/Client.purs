@@ -55,10 +55,7 @@ type RawResponse a =
   }
 
 normalizeError :: { message :: Nullable String, status :: Int, statusText :: String } -> ClientError
-normalizeError raw = do
-  let
-    message = fold (toMaybe raw.message)
-  { message, status: raw.status, statusText: raw.statusText }
+normalizeError raw = { message: fold (toMaybe raw.message), status: raw.status, statusText: raw.statusText }
 
 unwrapResponse :: forall a. Aff (RawResponse a) -> Aff (Either ClientError a)
 unwrapResponse aff = do

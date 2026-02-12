@@ -23,8 +23,8 @@ import Promise.Aff as Promise
 import Effect.Aff (Aff)
 import Prim.Row (class Union)
 import Unsafe.Coerce (unsafeCoerce)
-import Yoga.BetterAuth.Types (Api, Auth, Plugin, SessionWithUser, SignUpResult, SignInResult)
-import Yoga.BetterAuth.Types (Api, Auth, AuthClient, User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
+import Yoga.BetterAuth.Types (Api, Auth, Database, Plugin, SessionWithUser, SignUpResult, SignInResult, SocialProviders, WebHeaders, WebRequest)
+import Yoga.BetterAuth.Types (Api, Auth, AuthClient, Database, Plugin, User, Session, Account, SessionWithUser, SignUpResult, SignInResult, SocialProviders, WebHeaders, WebRequest) as Yoga.BetterAuth.Types
 import Yoga.Fetch (Response) as Fetch
 
 type BetterAuthOptionsImpl =
@@ -32,9 +32,9 @@ type BetterAuthOptionsImpl =
   , baseURL :: String
   , basePath :: String
   , secret :: String
-  , database :: Foreign
+  , database :: Database
   , emailAndPassword :: EmailAndPassword
-  , socialProviders :: Foreign
+  , socialProviders :: SocialProviders
   , trustedOrigins :: Array String
   , plugins :: Array Plugin
   )
@@ -58,9 +58,9 @@ type EmailAndPasswordImpl =
 emailAndPassword :: forall opts opts_. Union opts opts_ EmailAndPasswordImpl => { | opts } -> EmailAndPassword
 emailAndPassword opts = EmailAndPassword (unsafeCoerce opts)
 
-foreign import handlerImpl :: EffectFn2 Auth Foreign (Promise Fetch.Response)
+foreign import handlerImpl :: EffectFn2 Auth WebRequest (Promise Fetch.Response)
 
-handler :: Auth -> Foreign -> Aff Fetch.Response
+handler :: Auth -> WebRequest -> Aff Fetch.Response
 handler auth request = runEffectFn2 handlerImpl auth request # Promise.toAffE
 
 foreign import apiImpl :: EffectFn1 Auth Api
@@ -68,9 +68,9 @@ foreign import apiImpl :: EffectFn1 Auth Api
 api :: Auth -> Effect Api
 api = runEffectFn1 apiImpl
 
-foreign import getSessionImpl :: EffectFn2 Api { headers :: Foreign } (Promise SessionWithUser)
+foreign import getSessionImpl :: EffectFn2 Api { headers :: WebHeaders } (Promise SessionWithUser)
 
-getSession :: { headers :: Foreign } -> Api -> Aff SessionWithUser
+getSession :: { headers :: WebHeaders } -> Api -> Aff SessionWithUser
 getSession opts a = runEffectFn2 getSessionImpl a opts # Promise.toAffE
 
 foreign import signInEmailImpl :: EffectFn2 Api { body :: { email :: String, password :: String } } (Promise SignInResult)
@@ -83,7 +83,7 @@ foreign import signUpEmailImpl :: EffectFn2 Api { body :: { email :: String, pas
 signUpEmail :: { email :: String, password :: String, name :: String } -> Api -> Aff SignUpResult
 signUpEmail body a = runEffectFn2 signUpEmailImpl a { body } # Promise.toAffE
 
-foreign import signOutImpl :: EffectFn2 Api { headers :: Foreign } (Promise { success :: Boolean })
+foreign import signOutImpl :: EffectFn2 Api { headers :: WebHeaders } (Promise { success :: Boolean })
 
-signOut :: { headers :: Foreign } -> Api -> Aff { success :: Boolean }
+signOut :: { headers :: WebHeaders } -> Api -> Aff { success :: Boolean }
 signOut opts a = runEffectFn2 signOutImpl a opts # Promise.toAffE

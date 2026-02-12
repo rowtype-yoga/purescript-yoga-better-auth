@@ -11,6 +11,14 @@ foreign import data AuthClient :: Type
 
 foreign import data Plugin :: Type
 
+foreign import data Database :: Type
+
+foreign import data SocialProviders :: Type
+
+foreign import data WebHeaders :: Type
+
+foreign import data WebRequest :: Type
+
 type User =
   { id :: String
   , email :: String

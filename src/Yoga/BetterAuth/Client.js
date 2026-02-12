@@ -32,12 +32,6 @@ export const createCookieJarFetchOptionsImpl = (auth) => {
   };
 };
 
-export const normalizeErrorImpl = (err) => ({
-  message: err?.message ?? "",
-  status: err?.status ?? 0,
-  statusText: err?.statusText ?? "",
-});
-
 export const clientSignUpEmailImpl = (client, body) =>
   client.signUp.email(body);
 
