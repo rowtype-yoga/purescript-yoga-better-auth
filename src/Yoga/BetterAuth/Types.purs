@@ -30,6 +30,12 @@ derive instance Newtype Email _
 derive newtype instance Eq Email
 derive newtype instance Show Email
 
+newtype ISODateString = ISODateString String
+
+derive instance Newtype ISODateString _
+derive newtype instance Eq ISODateString
+derive newtype instance Show ISODateString
+
 foreign import data Auth :: Type
 
 foreign import data Api :: Type
@@ -52,19 +58,19 @@ type User =
   , name :: String
   , image :: Maybe String
   , emailVerified :: Boolean
-  , createdAt :: String
-  , updatedAt :: String
+  , createdAt :: ISODateString
+  , updatedAt :: ISODateString
   }
 
 type Session =
   { id :: SessionId
   , userId :: UserId
   , token :: Token
-  , expiresAt :: String
+  , expiresAt :: ISODateString
   , ipAddress :: Maybe String
   , userAgent :: Maybe String
-  , createdAt :: String
-  , updatedAt :: String
+  , createdAt :: ISODateString
+  , updatedAt :: ISODateString
   }
 
 type Account =
@@ -76,8 +82,8 @@ type Account =
   , refreshToken :: Maybe Token
   , idToken :: Maybe Token
   , scope :: Maybe String
-  , createdAt :: String
-  , updatedAt :: String
+  , createdAt :: ISODateString
+  , updatedAt :: ISODateString
   }
 
 type SessionWithUser =

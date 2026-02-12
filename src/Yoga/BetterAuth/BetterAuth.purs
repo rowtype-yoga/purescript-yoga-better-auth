@@ -24,7 +24,7 @@ import Promise.Aff as Promise
 import Effect.Aff (Aff)
 import Prim.Row (class Union)
 import Unsafe.Coerce (unsafeCoerce)
-import Yoga.BetterAuth.Types (Api, Auth, Database, Email(..), Plugin, SessionId(..), SessionWithUser, User, Session, SignUpResult, SignInResult, SocialProviders, Token(..), UserId(..), WebHeaders, WebRequest)
+import Yoga.BetterAuth.Types (Api, Auth, Database, Email(..), ISODateString(..), Plugin, SessionId(..), SessionWithUser, User, Session, SignUpResult, SignInResult, SocialProviders, Token(..), UserId(..), WebHeaders, WebRequest)
 import Yoga.BetterAuth.Types (Api, Auth, AuthClient, Database, Plugin, User, Session, Account, SessionWithUser, SignUpResult, SignInResult, SocialProviders, WebHeaders, WebRequest) as Yoga.BetterAuth.Types
 import Yoga.Fetch (Response) as Fetch
 
@@ -93,10 +93,25 @@ type RawSession =
   }
 
 fromRawUser :: RawUser -> User
-fromRawUser r = r { id = UserId r.id, email = Email r.email, image = toMaybe r.image }
+fromRawUser r = r
+  { id = UserId r.id
+  , email = Email r.email
+  , image = toMaybe r.image
+  , createdAt = ISODateString r.createdAt
+  , updatedAt = ISODateString r.updatedAt
+  }
 
 fromRawSession :: RawSession -> Session
-fromRawSession r = r { id = SessionId r.id, userId = UserId r.userId, token = Token r.token, ipAddress = toMaybe r.ipAddress, userAgent = toMaybe r.userAgent }
+fromRawSession r = r
+  { id = SessionId r.id
+  , userId = UserId r.userId
+  , token = Token r.token
+  , expiresAt = ISODateString r.expiresAt
+  , ipAddress = toMaybe r.ipAddress
+  , userAgent = toMaybe r.userAgent
+  , createdAt = ISODateString r.createdAt
+  , updatedAt = ISODateString r.updatedAt
+  }
 
 foreign import getSessionImpl :: EffectFn2 Api { headers :: WebHeaders } (Promise { session :: RawSession, user :: RawUser })
 
