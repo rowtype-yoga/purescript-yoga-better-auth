@@ -23,3 +23,5 @@ export const signInEmailImpl = (api, opts) => api.signInEmail(opts);
 export const signUpEmailImpl = (api, opts) => api.signUpEmail(opts);
 
 export const signOutImpl = (api, opts) => api.signOut(opts);
+
+export const signInSocialImpl = (api, opts) => api.signInSocial(opts);

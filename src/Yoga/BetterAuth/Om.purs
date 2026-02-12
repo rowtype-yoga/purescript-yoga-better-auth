@@ -8,14 +8,18 @@ module Yoga.BetterAuth.Om
   , clientSignInEmail
   , clientSignOut
   , clientGetSession
+  , signInSocial
+  , clientSignInSocial
   ) where
 
 import Prelude
 
 import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
+import Prim.Row (class Union)
 import Yoga.BetterAuth.BetterAuth as Server
 import Yoga.BetterAuth.Client as Client
+import Yoga.BetterAuth.SocialProviders (ProviderId, SignInSocialOptionsImpl, SignInSocialResult)
 import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, Email, Password, UserName, SessionWithUser, SignInResult, SignUpResult, WebHeaders)
 import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientUser, ClientSession, ClientSessionWithUser, ClientSignUpResult, ClientSignInResult, Email(..), Password(..), UserName(..), ISODateString(..), SessionId(..), Token(..), UserId(..), User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
 import Yoga.Om as Om
@@ -93,4 +97,24 @@ clientSignOut
 clientSignOut = do
   { authClient } <- Om.ask
   result <- Client.signOut authClient # liftAff
+  result # throwLeftAs (Om.error <<< { authError: _ })
+
+signInSocial
+  :: forall r err opts opts_
+   . Union opts opts_ SignInSocialOptionsImpl
+  => { provider :: ProviderId | opts }
+  -> Om.Om { auth :: Auth | r } err SignInSocialResult
+signInSocial body = do
+  { auth } <- Om.ask
+  api' <- Server.api auth # liftEffect
+  Server.signInSocial body api' # liftAff
+
+clientSignInSocial
+  :: forall r err opts opts_
+   . Union opts opts_ SignInSocialOptionsImpl
+  => { provider :: ProviderId | opts }
+  -> Om.Om { authClient :: AuthClient | r } (authError :: ClientError | err) SignInSocialResult
+clientSignInSocial body = do
+  { authClient } <- Om.ask
+  result <- Client.signInSocial body authClient # liftAff
   result # throwLeftAs (Om.error <<< { authError: _ })

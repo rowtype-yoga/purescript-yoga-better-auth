@@ -14,6 +14,7 @@ module Yoga.BetterAuth.BetterAuth
   , signInEmail
   , signUpEmail
   , signOut
+  , signInSocial
   ) where
 
 import Prelude
@@ -27,8 +28,9 @@ import Promise.Aff as Promise
 import Effect.Aff (Aff)
 import Prim.Row (class Union)
 import Unsafe.Coerce (unsafeCoerce)
-import Yoga.BetterAuth.Types (Api, Auth, Database, Email(..), Password(..), UserName(..), ISODateString(..), Plugin, SessionId(..), SessionWithUser, User, Session, SignUpResult, SignInResult, SocialProviders, Token(..), UserId(..), WebHeaders, WebRequest)
-import Yoga.BetterAuth.Types (Api, Auth, AuthClient, Database, Plugin, User, Session, Account, SessionWithUser, SignUpResult, SignInResult, SocialProviders, WebHeaders, WebRequest) as Yoga.BetterAuth.Types
+import Yoga.BetterAuth.SocialProviders (SocialProviders, ProviderId, SignInSocialOptionsImpl, SignInSocialResult)
+import Yoga.BetterAuth.Types (Api, Auth, Database, Email(..), Password(..), UserName(..), ISODateString(..), Plugin, SessionId(..), SessionWithUser, User, Session, SignUpResult, SignInResult, Token(..), UserId(..), WebHeaders, WebRequest)
+import Yoga.BetterAuth.Types (Api, Auth, AuthClient, Database, Plugin, User, Session, Account, SessionWithUser, SignUpResult, SignInResult, WebHeaders, WebRequest) as Yoga.BetterAuth.Types
 import Yoga.Fetch (Response) as Fetch
 
 type BetterAuthOptionsImpl =
@@ -157,3 +159,15 @@ foreign import signOutImpl :: EffectFn2 Api { headers :: WebHeaders } (Promise {
 
 signOut :: { headers :: WebHeaders } -> Api -> Aff { success :: Boolean }
 signOut opts a = runEffectFn2 signOutImpl a opts # Promise.toAffE
+
+foreign import signInSocialImpl :: forall body. EffectFn2 Api { body :: { | body } } (Promise { url :: Nullable String, redirect :: Boolean })
+
+signInSocial
+  :: forall opts opts_
+   . Union opts opts_ SignInSocialOptionsImpl
+  => { provider :: ProviderId | opts }
+  -> Api
+  -> Aff SignInSocialResult
+signInSocial body a = do
+  raw <- runEffectFn2 signInSocialImpl a { body } # Promise.toAffE
+  pure { url: toMaybe raw.url, redirect: raw.redirect }

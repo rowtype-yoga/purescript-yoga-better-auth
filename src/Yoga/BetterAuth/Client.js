@@ -41,3 +41,6 @@ export const clientSignInEmailImpl = (client, body) =>
 export const clientGetSessionImpl = (client) => client.getSession();
 
 export const clientSignOutImpl = (client) => client.signOut();
+
+export const clientSignInSocialImpl = (client, body) =>
+  client.signIn.social(body);

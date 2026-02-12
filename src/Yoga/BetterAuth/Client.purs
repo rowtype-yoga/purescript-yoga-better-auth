@@ -9,6 +9,7 @@ module Yoga.BetterAuth.Client
   , signInEmail
   , signOut
   , getSession
+  , signInSocial
   ) where
 
 import Prelude
@@ -24,6 +25,7 @@ import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 import Prim.Row (class Union)
 import Promise (Promise)
 import Promise.Aff as Promise
+import Yoga.BetterAuth.SocialProviders (ProviderId, SignInSocialOptionsImpl, SignInSocialResult)
 import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSession, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, ClientUser, Email(..), UserName(..), Password(..), Plugin, SessionId(..), Token(..), UserId(..))
 import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientUser, ClientSession, ClientSessionWithUser, ClientSignUpResult, ClientSignInResult, User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
 
@@ -128,3 +130,18 @@ foreign import clientSignOutImpl :: EffectFn1 AuthClient (Promise (RawResponse {
 signOut :: AuthClient -> Aff (Either ClientError { success :: Boolean })
 signOut client = unwrapResponse do
   runEffectFn1 clientSignOutImpl client # Promise.toAffE
+
+type RawSignInSocialResult = { url :: Nullable String, redirect :: Boolean }
+
+foreign import clientSignInSocialImpl :: forall body. EffectFn2 AuthClient { | body } (Promise (RawResponse RawSignInSocialResult))
+
+signInSocial
+  :: forall opts opts_
+   . Union opts opts_ SignInSocialOptionsImpl
+  => { provider :: ProviderId | opts }
+  -> AuthClient
+  -> Aff (Either ClientError SignInSocialResult)
+signInSocial body client = map fromRaw <$> unwrapResponse do
+  runEffectFn2 clientSignInSocialImpl client body # Promise.toAffE
+  where
+  fromRaw raw = { url: toMaybe raw.url, redirect: raw.redirect }
