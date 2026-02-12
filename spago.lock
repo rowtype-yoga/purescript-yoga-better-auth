@@ -46,7 +46,11 @@
             {
               "yoga-fastify": ">=0.2.3 <0.3.0"
             },
-            "yoga-fetch"
+            "yoga-fetch",
+            "yoga-om",
+            {
+              "yoga-om-layer": ">=1.0.0 <2.0.0"
+            }
           ]
         },
         "test": {
@@ -655,6 +659,8 @@
     "extra_packages": {
       "yoga-fastify": "0.2.3",
       "yoga-http-api": "0.1.4",
+      "yoga-om": "1.2.2",
+      "yoga-om-layer": "1.0.6",
       "yoga-options": "0.1.0"
     }
   },
@@ -1081,6 +1087,20 @@
         "tailrec",
         "tuples",
         "unfoldable"
+      ]
+    },
+    "heterogeneous": {
+      "type": "registry",
+      "version": "0.7.0",
+      "integrity": "sha256-pQwcFvhWL8noktxaoD7FlLs2F2lYf3QHoyO0VOWO3I0=",
+      "dependencies": [
+        "either",
+        "foldable-traversable",
+        "functors",
+        "prelude",
+        "record",
+        "tuples",
+        "variant"
       ]
     },
     "identity": {
@@ -1560,6 +1580,19 @@
         "unsafe-coerce"
       ]
     },
+    "record-studio": {
+      "type": "registry",
+      "version": "1.0.4",
+      "integrity": "sha256-CRnFvSXpDDzio+buibUxFU9zPZDd7/lzrYC1Ya3FuIw=",
+      "dependencies": [
+        "heterogeneous",
+        "lists",
+        "prelude",
+        "record",
+        "typelevel-prelude",
+        "unsafe-coerce"
+      ]
+    },
     "refs": {
       "type": "registry",
       "version": "6.0.0",
@@ -1740,6 +1773,23 @@
         "type-equality"
       ]
     },
+    "uncurried-transformers": {
+      "type": "registry",
+      "version": "1.1.0",
+      "integrity": "sha256-AqqBMzVLzozVoDorE3QcVVRDkLd7O3624mRHCDnPhaI=",
+      "dependencies": [
+        "control",
+        "effect",
+        "either",
+        "functions",
+        "identity",
+        "prelude",
+        "safe-coerce",
+        "tailrec",
+        "transformers",
+        "tuples"
+      ]
+    },
     "undefined-is-not-a-problem": {
       "type": "registry",
       "version": "1.1.0",
@@ -1912,6 +1962,50 @@
         "unsafe-coerce",
         "variant",
         "yoga-tree"
+      ]
+    },
+    "yoga-om": {
+      "type": "registry",
+      "version": "1.2.2",
+      "integrity": "sha256-uDV3/o8mUOTIgSEQFqIATPyladzL8BcjURvfS901hgI=",
+      "dependencies": [
+        "aff",
+        "avar",
+        "console",
+        "control",
+        "datetime",
+        "effect",
+        "either",
+        "exceptions",
+        "functions",
+        "maybe",
+        "newtype",
+        "parallel",
+        "prelude",
+        "record",
+        "record-studio",
+        "tailrec",
+        "transformers",
+        "tuples",
+        "typelevel-prelude",
+        "uncurried-transformers",
+        "unsafe-coerce",
+        "variant"
+      ]
+    },
+    "yoga-om-layer": {
+      "type": "registry",
+      "version": "1.0.6",
+      "integrity": "sha256-RrCaTvkiMwCFarWKbu0Dkq+yFz4hDM7x18gZok2OxV4=",
+      "dependencies": [
+        "aff",
+        "newtype",
+        "prelude",
+        "record",
+        "record-studio",
+        "type-equality",
+        "unsafe-coerce",
+        "yoga-om"
       ]
     },
     "yoga-options": {

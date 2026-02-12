@@ -3,8 +3,10 @@ module Yoga.BetterAuth.Types where
 import Prelude
 
 import Data.JSDate (JSDate)
+import Data.JSDate as JSDate
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
+import Effect.Unsafe (unsafePerformEffect)
 
 newtype UserId = UserId String
 
@@ -35,6 +37,12 @@ newtype ISODateString = ISODateString String
 derive instance Newtype ISODateString _
 derive newtype instance Eq ISODateString
 derive newtype instance Show ISODateString
+
+toJSDate :: ISODateString -> JSDate
+toJSDate (ISODateString s) = unsafePerformEffect (JSDate.parse s)
+
+fromJSDate :: JSDate -> ISODateString
+fromJSDate d = ISODateString (unsafePerformEffect (JSDate.toISOString d))
 
 foreign import data Auth :: Type
 

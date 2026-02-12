@@ -4,6 +4,8 @@ workspace:
   extraPackages:
     yoga-fastify: "0.2.3"
     yoga-http-api: "0.1.4"
+    yoga-om: "1.2.2"
+    yoga-om-layer: "1.0.6"
     yoga-options: "0.1.0"
 
 package:
@@ -31,6 +33,8 @@ package:
     - strings: ">=6.0.1 <7.0.0"
     - unsafe-coerce: ">=6.0.0 <7.0.0"
     - yoga-fastify: ">=0.2.3 <0.3.0"
+    - yoga-om
+    - yoga-om-layer: ">=1.0.0 <2.0.0"
   test:
     main: Test.BetterAuth.Main
     dependencies:

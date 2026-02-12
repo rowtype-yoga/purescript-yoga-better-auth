@@ -14,7 +14,9 @@ import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 import Yoga.BetterAuth.BetterAuth as Server
 import Yoga.BetterAuth.Client as Client
+import Yoga.BetterAuth.Om as AuthOm
 import Yoga.BetterAuth.Types (AuthClient, Email(..), SessionId(..), Token(..), UserId(..))
+import Yoga.Om as Om
 
 mkClient :: Effect AuthClient
 mkClient = do
@@ -138,3 +140,34 @@ main = launchAff_ do
           result <- Client.signInEmail { email: "nonexistent@test.com", password: "wrong" } client
           withLeft result \e ->
             e.status `shouldSatisfy` (_ > 0)
+
+    describe "Yoga.BetterAuth.Om" do
+      describe "clientSignUpEmail" do
+        it "signs up via Om context" do
+          client <- mkClient # liftEffect
+          result <- Om.runReader { authClient: client } do
+            r <- AuthOm.clientSignUpEmail { email: "om-signup@test.com", password: "password123", name: "Om User" }
+            pure r.user.email
+          case result of
+            Right email -> email `shouldEqual` Email "om-signup@test.com"
+            Left _ -> fail "Expected Right"
+
+      describe "clientGetSession" do
+        it "gets session via Om context" do
+          client <- mkClient # liftEffect
+          result <- Om.runReader { authClient: client } do
+            _ <- AuthOm.clientSignUpEmail { email: "om-session@test.com", password: "password123", name: "Om User" }
+            r <- AuthOm.clientGetSession
+            pure r.session.userId
+          case result of
+            Right uid -> un UserId uid `shouldSatisfy` (not <<< String.null)
+            Left _ -> fail "Expected Right"
+
+      describe "error handling" do
+        it "throws authError for invalid credentials" do
+          client <- mkClient # liftEffect
+          result <- Om.runReader { authClient: client } do
+            AuthOm.clientSignInEmail { email: "om-noexist@test.com", password: "wrong" }
+          case result of
+            Right _ -> fail "Expected authError, got Right"
+            Left _ -> pure unit
