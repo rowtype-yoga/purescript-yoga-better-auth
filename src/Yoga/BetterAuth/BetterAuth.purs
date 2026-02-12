@@ -41,7 +41,7 @@ type BetterAuthOptionsImpl =
 foreign import betterAuthImpl :: forall opts. EffectFn1 { | opts } Auth
 
 betterAuth :: forall opts opts_. Union opts opts_ BetterAuthOptionsImpl => { | opts } -> Effect Auth
-betterAuth opts = runEffectFn1 betterAuthImpl opts
+betterAuth = runEffectFn1 betterAuthImpl
 
 newtype EmailAndPassword = EmailAndPassword Foreign
 
@@ -65,7 +65,7 @@ handler auth request = runEffectFn2 handlerImpl auth request # Promise.toAffE
 foreign import apiImpl :: EffectFn1 Auth Api
 
 api :: Auth -> Effect Api
-api auth = runEffectFn1 apiImpl auth
+api = runEffectFn1 apiImpl
 
 foreign import getSessionImpl :: EffectFn2 Api { headers :: Foreign } (Promise SessionWithUser)
 
@@ -82,7 +82,7 @@ foreign import signUpEmailImpl :: EffectFn2 Api { body :: { email :: String, pas
 signUpEmail :: { email :: String, password :: String, name :: String } -> Api -> Aff SignUpResult
 signUpEmail body a = runEffectFn2 signUpEmailImpl a { body } # Promise.toAffE
 
-foreign import signOutImpl :: EffectFn2 Api { headers :: Foreign } (Promise Unit)
+foreign import signOutImpl :: EffectFn2 Api { headers :: Foreign } (Promise { success :: Boolean })
 
-signOut :: { headers :: Foreign } -> Api -> Aff Unit
+signOut :: { headers :: Foreign } -> Api -> Aff { success :: Boolean }
 signOut opts a = runEffectFn2 signOutImpl a opts # Promise.toAffE
