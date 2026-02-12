@@ -16,8 +16,8 @@ import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Yoga.BetterAuth.BetterAuth as Server
 import Yoga.BetterAuth.Client as Client
-import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, SessionWithUser, SignInResult, SignUpResult, WebHeaders)
-import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientUser, ClientSession, ClientSessionWithUser, ClientSignUpResult, ClientSignInResult, Email(..), Password(..), ISODateString(..), SessionId(..), Token(..), UserId(..), User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
+import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, Email, Password, UserName, SessionWithUser, SignInResult, SignUpResult, WebHeaders)
+import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientUser, ClientSession, ClientSessionWithUser, ClientSignUpResult, ClientSignInResult, Email(..), Password(..), UserName(..), ISODateString(..), SessionId(..), Token(..), UserId(..), User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
 import Yoga.Om as Om
 import Yoga.Om (throwLeftAs)
 
@@ -25,7 +25,7 @@ import Yoga.Om (throwLeftAs)
 
 signUpEmail
   :: forall r err
-   . { email :: Email, password :: Password, name :: String }
+   . { email :: Email, password :: Password, name :: UserName }
   -> Om.Om { auth :: Auth | r } err SignUpResult
 signUpEmail body = do
   { auth } <- Om.ask
@@ -63,7 +63,7 @@ signOut opts = do
 
 clientSignUpEmail
   :: forall r err
-   . { email :: Email, password :: Password, name :: String }
+   . { email :: Email, password :: Password, name :: UserName }
   -> Om.Om { authClient :: AuthClient | r } (authError :: ClientError | err) ClientSignUpResult
 clientSignUpEmail body = do
   { authClient } <- Om.ask

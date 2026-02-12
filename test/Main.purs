@@ -15,7 +15,7 @@ import Test.Spec.Runner (runSpec)
 import Yoga.BetterAuth.BetterAuth as Server
 import Yoga.BetterAuth.Client as Client
 import Yoga.BetterAuth.Om as AuthOm
-import Yoga.BetterAuth.Types (AuthClient, Email(..), Password(..), SessionId(..), Token(..), UserId(..))
+import Yoga.BetterAuth.Types (AuthClient, Email(..), Password(..), UserName(..), SessionId(..), Token(..), UserId(..))
 import Partial.Unsafe as Partial.Unsafe
 import Yoga.Om as Om
 
@@ -46,16 +46,16 @@ main = launchAff_ do
       it "sign up returns the user" do
         client <- mkClient # liftEffect
         { user } <- runAuth client do
-          AuthOm.clientSignUpEmail { email: Email "alice@test.com", password: Password "password123", name: "Alice" }
+          AuthOm.clientSignUpEmail { email: Email "alice@test.com", password: Password "password123", name: UserName "Alice" }
         user.email `shouldEqual` Email "alice@test.com"
-        user.name `shouldEqual` "Alice"
+        user.name `shouldEqual` UserName "Alice"
         user.emailVerified `shouldEqual` false
         un UserId user.id `shouldSatisfy` (not <<< String.null)
 
       it "sign in returns token and user" do
         client <- mkClient # liftEffect
         runAuth client do
-          void $ AuthOm.clientSignUpEmail { email: Email "bob@test.com", password: Password "password123", name: "Bob" }
+          void $ AuthOm.clientSignUpEmail { email: Email "bob@test.com", password: Password "password123", name: UserName "Bob" }
         { token, user, redirect } <- runAuth client do
           AuthOm.clientSignInEmail { email: Email "bob@test.com", password: Password "password123" }
         un Token token `shouldSatisfy` (not <<< String.null)
@@ -65,7 +65,7 @@ main = launchAff_ do
       it "get session after sign up" do
         client <- mkClient # liftEffect
         { session, user } <- runAuth client do
-          void $ AuthOm.clientSignUpEmail { email: Email "carol@test.com", password: Password "password123", name: "Carol" }
+          void $ AuthOm.clientSignUpEmail { email: Email "carol@test.com", password: Password "password123", name: UserName "Carol" }
           AuthOm.clientGetSession
         un SessionId session.id `shouldSatisfy` (not <<< String.null)
         un Token session.token `shouldSatisfy` (not <<< String.null)
@@ -75,7 +75,7 @@ main = launchAff_ do
       it "sign out after sign up" do
         client <- mkClient # liftEffect
         { success } <- runAuth client do
-          void $ AuthOm.clientSignUpEmail { email: Email "dave@test.com", password: Password "password123", name: "Dave" }
+          void $ AuthOm.clientSignUpEmail { email: Email "dave@test.com", password: Password "password123", name: UserName "Dave" }
           AuthOm.clientSignOut
         success `shouldEqual` true
 

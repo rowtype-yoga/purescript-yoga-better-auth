@@ -24,7 +24,7 @@ import Promise.Aff as Promise
 import Effect.Aff (Aff)
 import Prim.Row (class Union)
 import Unsafe.Coerce (unsafeCoerce)
-import Yoga.BetterAuth.Types (Api, Auth, Database, Email(..), ISODateString(..), Plugin, SessionId(..), SessionWithUser, User, Session, SignUpResult, SignInResult, SocialProviders, Token(..), UserId(..), WebHeaders, WebRequest)
+import Yoga.BetterAuth.Types (Api, Auth, Database, Email(..), Password(..), UserName(..), ISODateString(..), Plugin, SessionId(..), SessionWithUser, User, Session, SignUpResult, SignInResult, SocialProviders, Token(..), UserId(..), WebHeaders, WebRequest)
 import Yoga.BetterAuth.Types (Api, Auth, AuthClient, Database, Plugin, User, Session, Account, SessionWithUser, SignUpResult, SignInResult, SocialProviders, WebHeaders, WebRequest) as Yoga.BetterAuth.Types
 import Yoga.Fetch (Response) as Fetch
 
@@ -96,6 +96,7 @@ fromRawUser :: RawUser -> User
 fromRawUser r = r
   { id = UserId r.id
   , email = Email r.email
+  , name = UserName r.name
   , image = toMaybe r.image
   , createdAt = ISODateString r.createdAt
   , updatedAt = ISODateString r.updatedAt
@@ -127,9 +128,9 @@ signInEmail body a = do
   raw <- runEffectFn2 signInEmailImpl a { body } # Promise.toAffE
   pure { token: Token raw.token, user: fromRawUser raw.user, redirect: raw.redirect }
 
-foreign import signUpEmailImpl :: EffectFn2 Api { body :: { email :: Email, password :: Password, name :: String } } (Promise { token :: String, user :: RawUser })
+foreign import signUpEmailImpl :: EffectFn2 Api { body :: { email :: Email, password :: Password, name :: UserName } } (Promise { token :: String, user :: RawUser })
 
-signUpEmail :: { email :: Email, password :: Password, name :: String } -> Api -> Aff SignUpResult
+signUpEmail :: { email :: Email, password :: Password, name :: UserName } -> Api -> Aff SignUpResult
 signUpEmail body a = do
   raw <- runEffectFn2 signUpEmailImpl a { body } # Promise.toAffE
   pure { token: Token raw.token, user: fromRawUser raw.user }

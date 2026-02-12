@@ -37,6 +37,12 @@ newtype Password = Password String
 derive instance Newtype Password _
 derive newtype instance Eq Password
 
+newtype UserName = UserName String
+
+derive instance Newtype UserName _
+derive newtype instance Eq UserName
+derive newtype instance Show UserName
+
 newtype ISODateString = ISODateString String
 
 derive instance Newtype ISODateString _
@@ -68,7 +74,7 @@ foreign import data WebRequest :: Type
 type User =
   { id :: UserId
   , email :: Email
-  , name :: String
+  , name :: UserName
   , image :: Maybe String
   , emailVerified :: Boolean
   , createdAt :: ISODateString
@@ -126,7 +132,7 @@ type ClientError =
 type ClientUser =
   { id :: UserId
   , email :: Email
-  , name :: String
+  , name :: UserName
   , image :: Maybe String
   , emailVerified :: Boolean
   , createdAt :: JSDate

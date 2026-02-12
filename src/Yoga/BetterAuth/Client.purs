@@ -24,7 +24,7 @@ import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 import Prim.Row (class Union)
 import Promise (Promise)
 import Promise.Aff as Promise
-import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSession, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, ClientUser, Email(..), Plugin, SessionId(..), Token(..), UserId(..))
+import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSession, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, ClientUser, Email(..), UserName(..), Password(..), Plugin, SessionId(..), Token(..), UserId(..))
 import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientUser, ClientSession, ClientSessionWithUser, ClientSignUpResult, ClientSignInResult, User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
 
 foreign import data FetchOptions :: Type
@@ -74,7 +74,7 @@ type RawClientSession =
   }
 
 fromRawClientUser :: RawClientUser -> ClientUser
-fromRawClientUser r = r { id = UserId r.id, email = Email r.email, image = toMaybe r.image }
+fromRawClientUser r = r { id = UserId r.id, email = Email r.email, name = UserName r.name, image = toMaybe r.image }
 
 fromRawClientSession :: RawClientSession -> ClientSession
 fromRawClientSession r = r { id = SessionId r.id, userId = UserId r.userId, token = Token r.token, ipAddress = toMaybe r.ipAddress, userAgent = toMaybe r.userAgent }
@@ -99,9 +99,9 @@ type RawSignUpResult = { token :: Nullable String, user :: RawClientUser }
 type RawSignInResult = { token :: String, user :: RawClientUser, redirect :: Boolean }
 type RawSessionWithUser = { session :: RawClientSession, user :: RawClientUser }
 
-foreign import clientSignUpEmailImpl :: EffectFn2 AuthClient { email :: Email, password :: Password, name :: String } (Promise (RawResponse RawSignUpResult))
+foreign import clientSignUpEmailImpl :: EffectFn2 AuthClient { email :: Email, password :: Password, name :: UserName } (Promise (RawResponse RawSignUpResult))
 
-signUpEmail :: { email :: Email, password :: Password, name :: String } -> AuthClient -> Aff (Either ClientError ClientSignUpResult)
+signUpEmail :: { email :: Email, password :: Password, name :: UserName } -> AuthClient -> Aff (Either ClientError ClientSignUpResult)
 signUpEmail body client = map fromRawSignUp <$> unwrapResponse do
   runEffectFn2 clientSignUpEmailImpl client body # Promise.toAffE
   where
