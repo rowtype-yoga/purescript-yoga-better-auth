@@ -32,6 +32,11 @@ derive instance Newtype Email _
 derive newtype instance Eq Email
 derive newtype instance Show Email
 
+newtype Password = Password String
+
+derive instance Newtype Password _
+derive newtype instance Eq Password
+
 newtype ISODateString = ISODateString String
 
 derive instance Newtype ISODateString _

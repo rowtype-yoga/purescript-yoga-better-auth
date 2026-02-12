@@ -17,7 +17,7 @@ import Effect.Class (liftEffect)
 import Yoga.BetterAuth.BetterAuth as Server
 import Yoga.BetterAuth.Client as Client
 import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, SessionWithUser, SignInResult, SignUpResult, WebHeaders)
-import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientUser, ClientSession, ClientSessionWithUser, ClientSignUpResult, ClientSignInResult, Email(..), ISODateString(..), SessionId(..), Token(..), UserId(..), User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
+import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientUser, ClientSession, ClientSessionWithUser, ClientSignUpResult, ClientSignInResult, Email(..), Password(..), ISODateString(..), SessionId(..), Token(..), UserId(..), User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
 import Yoga.Om as Om
 import Yoga.Om (throwLeftAs)
 
@@ -25,7 +25,7 @@ import Yoga.Om (throwLeftAs)
 
 signUpEmail
   :: forall r err
-   . { email :: String, password :: String, name :: String }
+   . { email :: Email, password :: Password, name :: String }
   -> Om.Om { auth :: Auth | r } err SignUpResult
 signUpEmail body = do
   { auth } <- Om.ask
@@ -34,7 +34,7 @@ signUpEmail body = do
 
 signInEmail
   :: forall r err
-   . { email :: String, password :: String }
+   . { email :: Email, password :: Password }
   -> Om.Om { auth :: Auth | r } err SignInResult
 signInEmail body = do
   { auth } <- Om.ask
@@ -63,7 +63,7 @@ signOut opts = do
 
 clientSignUpEmail
   :: forall r err
-   . { email :: String, password :: String, name :: String }
+   . { email :: Email, password :: Password, name :: String }
   -> Om.Om { authClient :: AuthClient | r } (authError :: ClientError | err) ClientSignUpResult
 clientSignUpEmail body = do
   { authClient } <- Om.ask
@@ -72,7 +72,7 @@ clientSignUpEmail body = do
 
 clientSignInEmail
   :: forall r err
-   . { email :: String, password :: String }
+   . { email :: Email, password :: Password }
   -> Om.Om { authClient :: AuthClient | r } (authError :: ClientError | err) ClientSignInResult
 clientSignInEmail body = do
   { authClient } <- Om.ask

@@ -120,16 +120,16 @@ getSession opts a = do
   raw <- runEffectFn2 getSessionImpl a opts # Promise.toAffE
   pure { session: fromRawSession raw.session, user: fromRawUser raw.user }
 
-foreign import signInEmailImpl :: EffectFn2 Api { body :: { email :: String, password :: String } } (Promise { token :: String, user :: RawUser, redirect :: Boolean })
+foreign import signInEmailImpl :: EffectFn2 Api { body :: { email :: Email, password :: Password } } (Promise { token :: String, user :: RawUser, redirect :: Boolean })
 
-signInEmail :: { email :: String, password :: String } -> Api -> Aff SignInResult
+signInEmail :: { email :: Email, password :: Password } -> Api -> Aff SignInResult
 signInEmail body a = do
   raw <- runEffectFn2 signInEmailImpl a { body } # Promise.toAffE
   pure { token: Token raw.token, user: fromRawUser raw.user, redirect: raw.redirect }
 
-foreign import signUpEmailImpl :: EffectFn2 Api { body :: { email :: String, password :: String, name :: String } } (Promise { token :: String, user :: RawUser })
+foreign import signUpEmailImpl :: EffectFn2 Api { body :: { email :: Email, password :: Password, name :: String } } (Promise { token :: String, user :: RawUser })
 
-signUpEmail :: { email :: String, password :: String, name :: String } -> Api -> Aff SignUpResult
+signUpEmail :: { email :: Email, password :: Password, name :: String } -> Api -> Aff SignUpResult
 signUpEmail body a = do
   raw <- runEffectFn2 signUpEmailImpl a { body } # Promise.toAffE
   pure { token: Token raw.token, user: fromRawUser raw.user }

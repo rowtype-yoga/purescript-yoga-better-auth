@@ -99,17 +99,17 @@ type RawSignUpResult = { token :: Nullable String, user :: RawClientUser }
 type RawSignInResult = { token :: String, user :: RawClientUser, redirect :: Boolean }
 type RawSessionWithUser = { session :: RawClientSession, user :: RawClientUser }
 
-foreign import clientSignUpEmailImpl :: EffectFn2 AuthClient { email :: String, password :: String, name :: String } (Promise (RawResponse RawSignUpResult))
+foreign import clientSignUpEmailImpl :: EffectFn2 AuthClient { email :: Email, password :: Password, name :: String } (Promise (RawResponse RawSignUpResult))
 
-signUpEmail :: { email :: String, password :: String, name :: String } -> AuthClient -> Aff (Either ClientError ClientSignUpResult)
+signUpEmail :: { email :: Email, password :: Password, name :: String } -> AuthClient -> Aff (Either ClientError ClientSignUpResult)
 signUpEmail body client = map fromRawSignUp <$> unwrapResponse do
   runEffectFn2 clientSignUpEmailImpl client body # Promise.toAffE
   where
   fromRawSignUp raw = { token: Token <$> toMaybe raw.token, user: fromRawClientUser raw.user }
 
-foreign import clientSignInEmailImpl :: EffectFn2 AuthClient { email :: String, password :: String } (Promise (RawResponse RawSignInResult))
+foreign import clientSignInEmailImpl :: EffectFn2 AuthClient { email :: Email, password :: Password } (Promise (RawResponse RawSignInResult))
 
-signInEmail :: { email :: String, password :: String } -> AuthClient -> Aff (Either ClientError ClientSignInResult)
+signInEmail :: { email :: Email, password :: Password } -> AuthClient -> Aff (Either ClientError ClientSignInResult)
 signInEmail body client = map fromRawSignIn <$> unwrapResponse do
   runEffectFn2 clientSignInEmailImpl client body # Promise.toAffE
   where
