@@ -1,7 +1,7 @@
 module Yoga.BetterAuth.Types where
 
 import Data.JSDate (JSDate)
-import Data.Nullable (Nullable)
+import Data.Maybe (Maybe)
 
 foreign import data Auth :: Type
 
@@ -23,7 +23,7 @@ type User =
   { id :: String
   , email :: String
   , name :: String
-  , image :: Nullable String
+  , image :: Maybe String
   , emailVerified :: Boolean
   , createdAt :: String
   , updatedAt :: String
@@ -34,8 +34,8 @@ type Session =
   , userId :: String
   , token :: String
   , expiresAt :: String
-  , ipAddress :: Nullable String
-  , userAgent :: Nullable String
+  , ipAddress :: Maybe String
+  , userAgent :: Maybe String
   , createdAt :: String
   , updatedAt :: String
   }
@@ -45,10 +45,10 @@ type Account =
   , userId :: String
   , providerId :: String
   , accountId :: String
-  , accessToken :: Nullable String
-  , refreshToken :: Nullable String
-  , idToken :: Nullable String
-  , scope :: Nullable String
+  , accessToken :: Maybe String
+  , refreshToken :: Maybe String
+  , idToken :: Maybe String
+  , scope :: Maybe String
   , createdAt :: String
   , updatedAt :: String
   }
@@ -81,7 +81,7 @@ type ClientUser =
   { id :: String
   , email :: String
   , name :: String
-  , image :: Nullable String
+  , image :: Maybe String
   , emailVerified :: Boolean
   , createdAt :: JSDate
   , updatedAt :: JSDate
@@ -92,8 +92,8 @@ type ClientSession =
   , userId :: String
   , token :: String
   , expiresAt :: JSDate
-  , ipAddress :: Nullable String
-  , userAgent :: Nullable String
+  , ipAddress :: Maybe String
+  , userAgent :: Maybe String
   , createdAt :: JSDate
   , updatedAt :: JSDate
   }
@@ -104,7 +104,7 @@ type ClientSessionWithUser =
   }
 
 type ClientSignUpResult =
-  { token :: Nullable String
+  { token :: Maybe String
   , user :: ClientUser
   }
 

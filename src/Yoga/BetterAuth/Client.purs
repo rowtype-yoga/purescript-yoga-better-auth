@@ -15,6 +15,7 @@ import Prelude
 
 import Data.Either (Either(..))
 import Data.Foldable (fold)
+import Data.JSDate (JSDate)
 import Data.Maybe (Maybe(..))
 import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
@@ -23,7 +24,7 @@ import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 import Prim.Row (class Union)
 import Promise (Promise)
 import Promise.Aff as Promise
-import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, Plugin)
+import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSession, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, ClientUser, Plugin)
 import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientUser, ClientSession, ClientSessionWithUser, ClientSignUpResult, ClientSignInResult, User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
 
 foreign import data FetchOptions :: Type
@@ -49,6 +50,35 @@ createTestClient baseURL auth = do
   fetchOptions <- createCookieJarFetchOptions auth
   createAuthClient { baseURL, fetchOptions }
 
+-- Raw FFI types (Nullable at JS boundary)
+
+type RawClientUser =
+  { id :: String
+  , email :: String
+  , name :: String
+  , image :: Nullable String
+  , emailVerified :: Boolean
+  , createdAt :: JSDate
+  , updatedAt :: JSDate
+  }
+
+type RawClientSession =
+  { id :: String
+  , userId :: String
+  , token :: String
+  , expiresAt :: JSDate
+  , ipAddress :: Nullable String
+  , userAgent :: Nullable String
+  , createdAt :: JSDate
+  , updatedAt :: JSDate
+  }
+
+fromRawClientUser :: RawClientUser -> ClientUser
+fromRawClientUser r = r { image = toMaybe r.image }
+
+fromRawClientSession :: RawClientSession -> ClientSession
+fromRawClientSession r = r { ipAddress = toMaybe r.ipAddress, userAgent = toMaybe r.userAgent }
+
 type RawResponse a =
   { data :: Nullable a
   , error :: Nullable { message :: Nullable String, status :: Int, statusText :: String }
@@ -65,23 +95,33 @@ unwrapResponse aff = do
     _, Just e -> Left (normalizeError e)
     Nothing, Nothing -> Left { message: "Unknown error", status: 0, statusText: "Unknown" }
 
-foreign import clientSignUpEmailImpl :: EffectFn2 AuthClient { email :: String, password :: String, name :: String } (Promise (RawResponse ClientSignUpResult))
+type RawSignUpResult = { token :: Nullable String, user :: RawClientUser }
+type RawSignInResult = { token :: String, user :: RawClientUser, redirect :: Boolean }
+type RawSessionWithUser = { session :: RawClientSession, user :: RawClientUser }
+
+foreign import clientSignUpEmailImpl :: EffectFn2 AuthClient { email :: String, password :: String, name :: String } (Promise (RawResponse RawSignUpResult))
 
 signUpEmail :: { email :: String, password :: String, name :: String } -> AuthClient -> Aff (Either ClientError ClientSignUpResult)
-signUpEmail body client = unwrapResponse do
+signUpEmail body client = map fromRawSignUp <$> unwrapResponse do
   runEffectFn2 clientSignUpEmailImpl client body # Promise.toAffE
+  where
+  fromRawSignUp raw = { token: toMaybe raw.token, user: fromRawClientUser raw.user }
 
-foreign import clientSignInEmailImpl :: EffectFn2 AuthClient { email :: String, password :: String } (Promise (RawResponse ClientSignInResult))
+foreign import clientSignInEmailImpl :: EffectFn2 AuthClient { email :: String, password :: String } (Promise (RawResponse RawSignInResult))
 
 signInEmail :: { email :: String, password :: String } -> AuthClient -> Aff (Either ClientError ClientSignInResult)
-signInEmail body client = unwrapResponse do
+signInEmail body client = map fromRawSignIn <$> unwrapResponse do
   runEffectFn2 clientSignInEmailImpl client body # Promise.toAffE
+  where
+  fromRawSignIn raw = { token: raw.token, user: fromRawClientUser raw.user, redirect: raw.redirect }
 
-foreign import clientGetSessionImpl :: EffectFn1 AuthClient (Promise (RawResponse ClientSessionWithUser))
+foreign import clientGetSessionImpl :: EffectFn1 AuthClient (Promise (RawResponse RawSessionWithUser))
 
 getSession :: AuthClient -> Aff (Either ClientError ClientSessionWithUser)
-getSession client = unwrapResponse do
+getSession client = map fromRawSessionWithUser <$> unwrapResponse do
   runEffectFn1 clientGetSessionImpl client # Promise.toAffE
+  where
+  fromRawSessionWithUser raw = { session: fromRawClientSession raw.session, user: fromRawClientUser raw.user }
 
 foreign import clientSignOutImpl :: EffectFn1 AuthClient (Promise (RawResponse { success :: Boolean }))
 

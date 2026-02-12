@@ -15,6 +15,7 @@ module Yoga.BetterAuth.BetterAuth
 
 import Prelude
 
+import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 import Foreign (Foreign)
@@ -23,7 +24,7 @@ import Promise.Aff as Promise
 import Effect.Aff (Aff)
 import Prim.Row (class Union)
 import Unsafe.Coerce (unsafeCoerce)
-import Yoga.BetterAuth.Types (Api, Auth, Database, Plugin, SessionWithUser, SignUpResult, SignInResult, SocialProviders, WebHeaders, WebRequest)
+import Yoga.BetterAuth.Types (Api, Auth, Database, Plugin, SessionWithUser, User, Session, SignUpResult, SignInResult, SocialProviders, WebHeaders, WebRequest)
 import Yoga.BetterAuth.Types (Api, Auth, AuthClient, Database, Plugin, User, Session, Account, SessionWithUser, SignUpResult, SignInResult, SocialProviders, WebHeaders, WebRequest) as Yoga.BetterAuth.Types
 import Yoga.Fetch (Response) as Fetch
 
@@ -68,20 +69,55 @@ foreign import apiImpl :: EffectFn1 Auth Api
 api :: Auth -> Effect Api
 api = runEffectFn1 apiImpl
 
-foreign import getSessionImpl :: EffectFn2 Api { headers :: WebHeaders } (Promise SessionWithUser)
+-- Raw FFI types (Nullable at JS boundary)
+
+type RawUser =
+  { id :: String
+  , email :: String
+  , name :: String
+  , image :: Nullable String
+  , emailVerified :: Boolean
+  , createdAt :: String
+  , updatedAt :: String
+  }
+
+type RawSession =
+  { id :: String
+  , userId :: String
+  , token :: String
+  , expiresAt :: String
+  , ipAddress :: Nullable String
+  , userAgent :: Nullable String
+  , createdAt :: String
+  , updatedAt :: String
+  }
+
+fromRawUser :: RawUser -> User
+fromRawUser r = r { image = toMaybe r.image }
+
+fromRawSession :: RawSession -> Session
+fromRawSession r = r { ipAddress = toMaybe r.ipAddress, userAgent = toMaybe r.userAgent }
+
+foreign import getSessionImpl :: EffectFn2 Api { headers :: WebHeaders } (Promise { session :: RawSession, user :: RawUser })
 
 getSession :: { headers :: WebHeaders } -> Api -> Aff SessionWithUser
-getSession opts a = runEffectFn2 getSessionImpl a opts # Promise.toAffE
+getSession opts a = do
+  raw <- runEffectFn2 getSessionImpl a opts # Promise.toAffE
+  pure { session: fromRawSession raw.session, user: fromRawUser raw.user }
 
-foreign import signInEmailImpl :: EffectFn2 Api { body :: { email :: String, password :: String } } (Promise SignInResult)
+foreign import signInEmailImpl :: EffectFn2 Api { body :: { email :: String, password :: String } } (Promise { token :: String, user :: RawUser, redirect :: Boolean })
 
 signInEmail :: { email :: String, password :: String } -> Api -> Aff SignInResult
-signInEmail body a = runEffectFn2 signInEmailImpl a { body } # Promise.toAffE
+signInEmail body a = do
+  raw <- runEffectFn2 signInEmailImpl a { body } # Promise.toAffE
+  pure { token: raw.token, user: fromRawUser raw.user, redirect: raw.redirect }
 
-foreign import signUpEmailImpl :: EffectFn2 Api { body :: { email :: String, password :: String, name :: String } } (Promise SignUpResult)
+foreign import signUpEmailImpl :: EffectFn2 Api { body :: { email :: String, password :: String, name :: String } } (Promise { token :: String, user :: RawUser })
 
 signUpEmail :: { email :: String, password :: String, name :: String } -> Api -> Aff SignUpResult
-signUpEmail body a = runEffectFn2 signUpEmailImpl a { body } # Promise.toAffE
+signUpEmail body a = do
+  raw <- runEffectFn2 signUpEmailImpl a { body } # Promise.toAffE
+  pure { token: raw.token, user: fromRawUser raw.user }
 
 foreign import signOutImpl :: EffectFn2 Api { headers :: WebHeaders } (Promise { success :: Boolean })
 
