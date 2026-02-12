@@ -3,7 +3,6 @@ module Yoga.BetterAuth.BetterAuth
   , betterAuth
   , handler
   , api
-  , cookieHeaders
   , BetterAuthOptionsImpl
   , EmailAndPassword
   , emailAndPassword
@@ -63,11 +62,6 @@ foreign import handlerImpl :: EffectFn2 Auth Foreign (Promise Fetch.Response)
 
 handler :: Auth -> Foreign -> Aff Fetch.Response
 handler auth request = runEffectFn2 handlerImpl auth request # Promise.toAffE
-
-foreign import cookieHeadersImpl :: Fetch.Response -> Foreign
-
-cookieHeaders :: Fetch.Response -> Foreign
-cookieHeaders = cookieHeadersImpl
 
 foreign import apiImpl :: EffectFn1 Auth Api
 

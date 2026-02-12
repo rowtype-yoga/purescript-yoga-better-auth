@@ -1,5 +1,6 @@
 module Yoga.BetterAuth.Types where
 
+import Data.JSDate (JSDate)
 import Data.Nullable (Nullable)
 
 foreign import data Auth :: Type
@@ -55,5 +56,50 @@ type SignUpResult =
 type SignInResult =
   { token :: String
   , user :: User
+  , redirect :: Boolean
+  }
+
+-- Client types (dates are JSDate because better-auth's client parser converts ISO strings)
+
+type ClientError =
+  { message :: String
+  , status :: Int
+  , statusText :: String
+  }
+
+type ClientUser =
+  { id :: String
+  , email :: String
+  , name :: String
+  , image :: Nullable String
+  , emailVerified :: Boolean
+  , createdAt :: JSDate
+  , updatedAt :: JSDate
+  }
+
+type ClientSession =
+  { id :: String
+  , userId :: String
+  , token :: String
+  , expiresAt :: JSDate
+  , ipAddress :: Nullable String
+  , userAgent :: Nullable String
+  , createdAt :: JSDate
+  , updatedAt :: JSDate
+  }
+
+type ClientSessionWithUser =
+  { session :: ClientSession
+  , user :: ClientUser
+  }
+
+type ClientSignUpResult =
+  { token :: Nullable String
+  , user :: ClientUser
+  }
+
+type ClientSignInResult =
+  { token :: String
+  , user :: ClientUser
   , redirect :: Boolean
   }
