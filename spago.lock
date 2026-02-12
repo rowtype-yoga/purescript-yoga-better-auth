@@ -44,7 +44,8 @@
             },
             {
               "yoga-fastify": ">=0.2.3 <0.3.0"
-            }
+            },
+            "yoga-fetch"
           ]
         },
         "test": {
@@ -676,6 +677,21 @@
         "tailrec",
         "transformers",
         "unsafe-coerce"
+      ]
+    },
+    "aff-promise": {
+      "type": "registry",
+      "version": "4.0.0",
+      "integrity": "sha256-Jgp3y+NWuuAmwz2V3LlWoX+AvxqfVglY77N5zTw8xnI=",
+      "dependencies": [
+        "aff",
+        "control",
+        "effect",
+        "either",
+        "exceptions",
+        "foreign",
+        "prelude",
+        "transformers"
       ]
     },
     "ansi": {
@@ -1814,6 +1830,23 @@
         "variant",
         "yoga-http-api",
         "yoga-json"
+      ]
+    },
+    "yoga-fetch": {
+      "type": "registry",
+      "version": "1.0.1",
+      "integrity": "sha256-EXvMj2MCPvEIbPePqxkuu23nh0MdzCpbEW5rnmKGMkE=",
+      "dependencies": [
+        "aff",
+        "aff-promise",
+        "arraybuffer-types",
+        "effect",
+        "foreign",
+        "foreign-object",
+        "newtype",
+        "prelude",
+        "typelevel-prelude",
+        "unsafe-coerce"
       ]
     },
     "yoga-http-api": {
