@@ -1,7 +1,34 @@
 module Yoga.BetterAuth.Types where
 
+import Prelude
+
 import Data.JSDate (JSDate)
 import Data.Maybe (Maybe)
+import Data.Newtype (class Newtype)
+
+newtype UserId = UserId String
+
+derive instance Newtype UserId _
+derive newtype instance Eq UserId
+derive newtype instance Show UserId
+
+newtype SessionId = SessionId String
+
+derive instance Newtype SessionId _
+derive newtype instance Eq SessionId
+derive newtype instance Show SessionId
+
+newtype Token = Token String
+
+derive instance Newtype Token _
+derive newtype instance Eq Token
+derive newtype instance Show Token
+
+newtype Email = Email String
+
+derive instance Newtype Email _
+derive newtype instance Eq Email
+derive newtype instance Show Email
 
 foreign import data Auth :: Type
 
@@ -20,8 +47,8 @@ foreign import data WebHeaders :: Type
 foreign import data WebRequest :: Type
 
 type User =
-  { id :: String
-  , email :: String
+  { id :: UserId
+  , email :: Email
   , name :: String
   , image :: Maybe String
   , emailVerified :: Boolean
@@ -30,9 +57,9 @@ type User =
   }
 
 type Session =
-  { id :: String
-  , userId :: String
-  , token :: String
+  { id :: SessionId
+  , userId :: UserId
+  , token :: Token
   , expiresAt :: String
   , ipAddress :: Maybe String
   , userAgent :: Maybe String
@@ -42,12 +69,12 @@ type Session =
 
 type Account =
   { id :: String
-  , userId :: String
+  , userId :: UserId
   , providerId :: String
   , accountId :: String
-  , accessToken :: Maybe String
-  , refreshToken :: Maybe String
-  , idToken :: Maybe String
+  , accessToken :: Maybe Token
+  , refreshToken :: Maybe Token
+  , idToken :: Maybe Token
   , scope :: Maybe String
   , createdAt :: String
   , updatedAt :: String
@@ -59,12 +86,12 @@ type SessionWithUser =
   }
 
 type SignUpResult =
-  { token :: String
+  { token :: Token
   , user :: User
   }
 
 type SignInResult =
-  { token :: String
+  { token :: Token
   , user :: User
   , redirect :: Boolean
   }
@@ -78,8 +105,8 @@ type ClientError =
   }
 
 type ClientUser =
-  { id :: String
-  , email :: String
+  { id :: UserId
+  , email :: Email
   , name :: String
   , image :: Maybe String
   , emailVerified :: Boolean
@@ -88,9 +115,9 @@ type ClientUser =
   }
 
 type ClientSession =
-  { id :: String
-  , userId :: String
-  , token :: String
+  { id :: SessionId
+  , userId :: UserId
+  , token :: Token
   , expiresAt :: JSDate
   , ipAddress :: Maybe String
   , userAgent :: Maybe String
@@ -104,12 +131,12 @@ type ClientSessionWithUser =
   }
 
 type ClientSignUpResult =
-  { token :: Maybe String
+  { token :: Maybe Token
   , user :: ClientUser
   }
 
 type ClientSignInResult =
-  { token :: String
+  { token :: Token
   , user :: ClientUser
   , redirect :: Boolean
   }

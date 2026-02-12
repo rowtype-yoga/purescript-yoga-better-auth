@@ -3,6 +3,7 @@ module Test.BetterAuth.Main where
 import Prelude
 
 import Data.Either (Either(..))
+import Data.Newtype (un)
 import Data.String as String
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff_)
@@ -13,7 +14,7 @@ import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 import Yoga.BetterAuth.BetterAuth as Server
 import Yoga.BetterAuth.Client as Client
-import Yoga.BetterAuth.Types (AuthClient)
+import Yoga.BetterAuth.Types (AuthClient, Email(..), SessionId(..), Token(..), UserId(..))
 
 mkClient :: Effect AuthClient
 mkClient = do
@@ -41,13 +42,13 @@ main = launchAff_ do
           client <- mkClient # liftEffect
           result <- Client.signUpEmail { email: "signup-token@test.com", password: "password123", name: "Test User" } client
           withRight result \r ->
-            r.token `shouldSatisfy` \_ -> true
+            r.token `shouldSatisfy` \_ -> true -- Maybe Token, any value is fine
 
         it "returns user.email matching input" do
           client <- mkClient # liftEffect
           result <- Client.signUpEmail { email: "signup-email@test.com", password: "password123", name: "Test User" } client
           withRight result \r ->
-            r.user.email `shouldEqual` "signup-email@test.com"
+            r.user.email `shouldEqual` Email "signup-email@test.com"
 
         it "returns user.name matching input" do
           client <- mkClient # liftEffect
@@ -59,7 +60,7 @@ main = launchAff_ do
           client <- mkClient # liftEffect
           result <- Client.signUpEmail { email: "signup-id@test.com", password: "password123", name: "Test User" } client
           withRight result \r ->
-            r.user.id `shouldSatisfy` (not <<< String.null)
+            un UserId r.user.id `shouldSatisfy` (not <<< String.null)
 
         it "returns user.emailVerified as false" do
           client <- mkClient # liftEffect
@@ -73,14 +74,14 @@ main = launchAff_ do
           _ <- Client.signUpEmail { email: "signin-token@test.com", password: "password123", name: "Test User" } client
           result <- Client.signInEmail { email: "signin-token@test.com", password: "password123" } client
           withRight result \r ->
-            r.token `shouldSatisfy` (not <<< String.null)
+            un Token r.token `shouldSatisfy` (not <<< String.null)
 
         it "returns user.email matching input" do
           client <- mkClient # liftEffect
           _ <- Client.signUpEmail { email: "signin-email@test.com", password: "password123", name: "Test User" } client
           result <- Client.signInEmail { email: "signin-email@test.com", password: "password123" } client
           withRight result \r ->
-            r.user.email `shouldEqual` "signin-email@test.com"
+            r.user.email `shouldEqual` Email "signin-email@test.com"
 
         it "returns user.name" do
           client <- mkClient # liftEffect
@@ -94,7 +95,7 @@ main = launchAff_ do
           _ <- Client.signUpEmail { email: "signin-id@test.com", password: "password123", name: "Test User" } client
           result <- Client.signInEmail { email: "signin-id@test.com", password: "password123" } client
           withRight result \r ->
-            r.user.id `shouldSatisfy` (not <<< String.null)
+            un UserId r.user.id `shouldSatisfy` (not <<< String.null)
 
         it "returns user.emailVerified" do
           client <- mkClient # liftEffect
@@ -116,10 +117,10 @@ main = launchAff_ do
           _ <- Client.signUpEmail { email: "getsess@test.com", password: "password123", name: "Test User" } client
           result <- Client.getSession client
           withRight result \r -> do
-            r.session.id `shouldSatisfy` (not <<< String.null)
-            r.session.token `shouldSatisfy` (not <<< String.null)
+            un SessionId r.session.id `shouldSatisfy` (not <<< String.null)
+            un Token r.session.token `shouldSatisfy` (not <<< String.null)
             r.session.userId `shouldEqual` r.user.id
-            r.user.email `shouldEqual` "getsess@test.com"
+            r.user.email `shouldEqual` Email "getsess@test.com"
             r.user.name `shouldEqual` "Test User"
             r.user.emailVerified `shouldEqual` false
 

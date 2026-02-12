@@ -24,7 +24,7 @@ import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
 import Prim.Row (class Union)
 import Promise (Promise)
 import Promise.Aff as Promise
-import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSession, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, ClientUser, Plugin)
+import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSession, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, ClientUser, Email(..), Plugin, SessionId(..), Token(..), UserId(..))
 import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientUser, ClientSession, ClientSessionWithUser, ClientSignUpResult, ClientSignInResult, User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
 
 foreign import data FetchOptions :: Type
@@ -74,10 +74,10 @@ type RawClientSession =
   }
 
 fromRawClientUser :: RawClientUser -> ClientUser
-fromRawClientUser r = r { image = toMaybe r.image }
+fromRawClientUser r = r { id = UserId r.id, email = Email r.email, image = toMaybe r.image }
 
 fromRawClientSession :: RawClientSession -> ClientSession
-fromRawClientSession r = r { ipAddress = toMaybe r.ipAddress, userAgent = toMaybe r.userAgent }
+fromRawClientSession r = r { id = SessionId r.id, userId = UserId r.userId, token = Token r.token, ipAddress = toMaybe r.ipAddress, userAgent = toMaybe r.userAgent }
 
 type RawResponse a =
   { data :: Nullable a
@@ -105,7 +105,7 @@ signUpEmail :: { email :: String, password :: String, name :: String } -> AuthCl
 signUpEmail body client = map fromRawSignUp <$> unwrapResponse do
   runEffectFn2 clientSignUpEmailImpl client body # Promise.toAffE
   where
-  fromRawSignUp raw = { token: toMaybe raw.token, user: fromRawClientUser raw.user }
+  fromRawSignUp raw = { token: Token <$> toMaybe raw.token, user: fromRawClientUser raw.user }
 
 foreign import clientSignInEmailImpl :: EffectFn2 AuthClient { email :: String, password :: String } (Promise (RawResponse RawSignInResult))
 
@@ -113,7 +113,7 @@ signInEmail :: { email :: String, password :: String } -> AuthClient -> Aff (Eit
 signInEmail body client = map fromRawSignIn <$> unwrapResponse do
   runEffectFn2 clientSignInEmailImpl client body # Promise.toAffE
   where
-  fromRawSignIn raw = { token: raw.token, user: fromRawClientUser raw.user, redirect: raw.redirect }
+  fromRawSignIn raw = { token: Token raw.token, user: fromRawClientUser raw.user, redirect: raw.redirect }
 
 foreign import clientGetSessionImpl :: EffectFn1 AuthClient (Promise (RawResponse RawSessionWithUser))
 
