@@ -5,8 +5,9 @@ import Prelude
 import Data.Either (Either(..))
 import Data.Newtype (un)
 import Data.String as String
+import Data.Time.Duration (Milliseconds(..))
 import Effect (Effect)
-import Effect.Aff (Aff, launchAff_)
+import Effect.Aff (Aff, bracket, launchAff_)
 import Effect.Class (liftEffect)
 import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy, fail)
@@ -16,6 +17,7 @@ import Yoga.BetterAuth.BetterAuth as Server
 import Yoga.BetterAuth.Client as Client
 import Yoga.BetterAuth.Om as AuthOm
 import Yoga.BetterAuth.Types (AuthClient, Email(..), Password(..), UserName(..), SessionId(..), Token(..), UserId(..))
+import Yoga.Test.Docker as Docker
 import Partial.Unsafe as Partial.Unsafe
 import Yoga.Om as Om
 
@@ -28,6 +30,20 @@ mkClient = do
     }
   Client.createTestClient "http://localhost:3000" auth
 
+mkPostgresClient :: Aff AuthClient
+mkPostgresClient = do
+  let connectionString = "postgresql://test:test@localhost:5433/better_auth_test"
+  db <- Server.pgPool connectionString # liftEffect
+  auth <-
+    Server.betterAuth
+      { secret: "test-secret-that-is-at-least-32-chars-long!!"
+      , baseURL: "http://localhost:3000"
+      , database: db
+      , emailAndPassword: Server.emailAndPassword { enabled: true }
+      } # liftEffect
+  Server.runMigrations auth
+  Client.createTestClient "http://localhost:3000" auth # liftEffect
+
 runAuth :: forall a. AuthClient -> Om.Om { authClient :: AuthClient } (authError :: Client.ClientError) a -> Aff a
 runAuth client = Om.runOm { authClient: client }
   { exception: \e -> fail ("Unexpected exception: " <> show e) *> unsafeCrashWith "unreachable"
@@ -36,6 +52,9 @@ runAuth client = Om.runOm { authClient: client }
   where
   unsafeCrashWith :: forall b. String -> Aff b
   unsafeCrashWith = liftEffect <<< Partial.Unsafe.unsafeCrashWith
+
+composeFile :: Docker.ComposeFile
+composeFile = Docker.ComposeFile "docker-compose.test.yml"
 
 main :: Effect Unit
 main = launchAff_ do
@@ -86,3 +105,19 @@ main = launchAff_ do
         case result of
           Right _ -> fail "Expected authError"
           Left _ -> pure unit
+
+    describe "Yoga.BetterAuth.Om (Postgres)" do
+
+      it "sign up and sign in with real Postgres" do
+        bracket
+          (Docker.startService composeFile (Docker.Timeout (Milliseconds 30000.0)))
+          (\_ -> Docker.stopService composeFile)
+          \_ -> do
+            client <- mkPostgresClient
+            { user } <- runAuth client do
+              AuthOm.clientSignUpEmail { email: Email "pg@test.com", password: Password "password123", name: UserName "PgUser" }
+            user.email `shouldEqual` Email "pg@test.com"
+            user.name `shouldEqual` UserName "PgUser"
+            { token } <- runAuth client do
+              AuthOm.clientSignInEmail { email: Email "pg@test.com", password: Password "password123" }
+            un Token token `shouldSatisfy` (not <<< String.null)

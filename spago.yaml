@@ -7,6 +7,8 @@ workspace:
     yoga-om: "1.2.2"
     yoga-om-layer: "1.0.6"
     yoga-options: "0.1.0"
+    yoga-test-docker:
+      path: ../purescript-yoga-test-docker
 
 package:
   name: yoga-better-auth
@@ -40,3 +42,4 @@ package:
     dependencies:
       - console: ">=6.0.0 <7.0.0"
       - spec: ">=7.0.0 <8.0.0"
+      - yoga-test-docker

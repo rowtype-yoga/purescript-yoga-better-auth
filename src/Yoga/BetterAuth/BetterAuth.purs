@@ -3,6 +3,8 @@ module Yoga.BetterAuth.BetterAuth
   , betterAuth
   , handler
   , api
+  , pgPool
+  , runMigrations
   , BetterAuthOptionsImpl
   , EmailAndPassword
   , emailAndPassword
@@ -44,6 +46,16 @@ foreign import betterAuthImpl :: forall opts. EffectFn1 { | opts } Auth
 
 betterAuth :: forall opts opts_. Union opts opts_ BetterAuthOptionsImpl => { | opts } -> Effect Auth
 betterAuth = runEffectFn1 betterAuthImpl
+
+foreign import pgPoolImpl :: EffectFn1 String Database
+
+pgPool :: String -> Effect Database
+pgPool = runEffectFn1 pgPoolImpl
+
+foreign import runMigrationsImpl :: Auth -> Promise Unit
+
+runMigrations :: Auth -> Aff Unit
+runMigrations auth = runMigrationsImpl auth # Promise.toAff
 
 newtype EmailAndPassword = EmailAndPassword Foreign
 

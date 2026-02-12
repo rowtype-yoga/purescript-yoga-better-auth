@@ -1,6 +1,14 @@
 import { betterAuth } from "better-auth";
+import { getMigrations } from "better-auth/db";
+import pg from "pg";
 
 export const betterAuthImpl = (opts) => betterAuth(opts);
+
+export const pgPoolImpl = (connectionString) =>
+  new pg.Pool({ connectionString });
+
+export const runMigrationsImpl = (auth) =>
+  getMigrations(auth.options).then(({ runMigrations }) => runMigrations());
 
 export const handlerImpl = (auth, request) => auth.handler(request);
 
