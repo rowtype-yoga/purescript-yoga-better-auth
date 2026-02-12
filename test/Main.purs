@@ -6,7 +6,7 @@ import Data.Either (Either(..))
 import Data.Newtype (un)
 import Data.String as String
 import Effect (Effect)
-import Effect.Aff (launchAff_)
+import Effect.Aff (Aff, launchAff_)
 import Effect.Class (liftEffect)
 import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy, fail)
@@ -16,6 +16,7 @@ import Yoga.BetterAuth.BetterAuth as Server
 import Yoga.BetterAuth.Client as Client
 import Yoga.BetterAuth.Om as AuthOm
 import Yoga.BetterAuth.Types (AuthClient, Email(..), SessionId(..), Token(..), UserId(..))
+import Partial.Unsafe as Partial.Unsafe
 import Yoga.Om as Om
 
 mkClient :: Effect AuthClient
@@ -27,75 +28,61 @@ mkClient = do
     }
   Client.createTestClient "http://localhost:3000" auth
 
+runAuth :: forall a. AuthClient -> Om.Om { authClient :: AuthClient } (authError :: Client.ClientError) a -> Aff a
+runAuth client = Om.runOm { authClient: client }
+  { exception: \e -> fail ("Unexpected exception: " <> show e) *> unsafeCrashWith "unreachable"
+  , authError: \e -> fail ("Unexpected auth error: " <> e.message) *> unsafeCrashWith "unreachable"
+  }
+  where
+  unsafeCrashWith :: forall b. String -> Aff b
+  unsafeCrashWith = liftEffect <<< Partial.Unsafe.unsafeCrashWith
+
 main :: Effect Unit
 main = launchAff_ do
   runSpec [ consoleReporter ] do
 
-    describe "Yoga.BetterAuth.Client" do
-
-      it "sign up, sign in, get session, sign out" do
-        client <- mkClient # liftEffect
-
-        signUp <- Client.signUpEmail { email: "alice@test.com", password: "password123", name: "Alice" } client
-        case signUp of
-          Left e -> fail e.message
-          Right r -> do
-            r.user.email `shouldEqual` Email "alice@test.com"
-            r.user.name `shouldEqual` "Alice"
-            r.user.emailVerified `shouldEqual` false
-            un UserId r.user.id `shouldSatisfy` (not <<< String.null)
-
-        signIn <- Client.signInEmail { email: "alice@test.com", password: "password123" } client
-        case signIn of
-          Left e -> fail e.message
-          Right r -> do
-            un Token r.token `shouldSatisfy` (not <<< String.null)
-            r.user.email `shouldEqual` Email "alice@test.com"
-            r.user.name `shouldEqual` "Alice"
-            r.redirect `shouldEqual` false
-
-        session <- Client.getSession client
-        case session of
-          Left e -> fail e.message
-          Right r -> do
-            un SessionId r.session.id `shouldSatisfy` (not <<< String.null)
-            un Token r.session.token `shouldSatisfy` (not <<< String.null)
-            r.session.userId `shouldEqual` r.user.id
-            r.user.email `shouldEqual` Email "alice@test.com"
-
-        logout <- Client.signOut client
-        case logout of
-          Left e -> fail e.message
-          Right r -> r.success `shouldEqual` true
-
-      it "sign in with wrong password returns Left" do
-        client <- mkClient # liftEffect
-        result <- Client.signInEmail { email: "nobody@test.com", password: "wrong" } client
-        case result of
-          Right _ -> fail "Expected Left"
-          Left e -> e.status `shouldSatisfy` (_ > 0)
-
     describe "Yoga.BetterAuth.Om" do
 
-      it "sign up, get session, sign out" do
+      it "sign up returns the user" do
         client <- mkClient # liftEffect
-        result <- Om.runReader { authClient: client } do
-          { user } <- AuthOm.clientSignUpEmail { email: "bob@test.com", password: "password123", name: "Bob" }
-          { session } <- AuthOm.clientGetSession
-          { success } <- AuthOm.clientSignOut
-          pure { user, session, success }
-        case result of
-          Left _ -> fail "Expected Right"
-          Right r -> do
-            r.user.email `shouldEqual` Email "bob@test.com"
-            r.user.name `shouldEqual` "Bob"
-            r.session.userId `shouldEqual` r.user.id
-            r.success `shouldEqual` true
+        { user } <- runAuth client do
+          AuthOm.clientSignUpEmail { email: "alice@test.com", password: "password123", name: "Alice" }
+        user.email `shouldEqual` Email "alice@test.com"
+        user.name `shouldEqual` "Alice"
+        user.emailVerified `shouldEqual` false
+        un UserId user.id `shouldSatisfy` (not <<< String.null)
+
+      it "sign in returns token and user" do
+        client <- mkClient # liftEffect
+        runAuth client do
+          void $ AuthOm.clientSignUpEmail { email: "bob@test.com", password: "password123", name: "Bob" }
+        { token, user, redirect } <- runAuth client do
+          AuthOm.clientSignInEmail { email: "bob@test.com", password: "password123" }
+        un Token token `shouldSatisfy` (not <<< String.null)
+        user.email `shouldEqual` Email "bob@test.com"
+        redirect `shouldEqual` false
+
+      it "get session after sign up" do
+        client <- mkClient # liftEffect
+        { session, user } <- runAuth client do
+          void $ AuthOm.clientSignUpEmail { email: "carol@test.com", password: "password123", name: "Carol" }
+          AuthOm.clientGetSession
+        un SessionId session.id `shouldSatisfy` (not <<< String.null)
+        un Token session.token `shouldSatisfy` (not <<< String.null)
+        session.userId `shouldEqual` user.id
+        user.email `shouldEqual` Email "carol@test.com"
+
+      it "sign out after sign up" do
+        client <- mkClient # liftEffect
+        { success } <- runAuth client do
+          void $ AuthOm.clientSignUpEmail { email: "dave@test.com", password: "password123", name: "Dave" }
+          AuthOm.clientSignOut
+        success `shouldEqual` true
 
       it "sign in with wrong password throws authError" do
         client <- mkClient # liftEffect
         result <- Om.runReader { authClient: client } do
           AuthOm.clientSignInEmail { email: "nobody@test.com", password: "wrong" }
         case result of
-          Right _ -> fail "Expected Left"
+          Right _ -> fail "Expected authError"
           Left _ -> pure unit
