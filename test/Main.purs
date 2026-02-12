@@ -31,7 +31,7 @@ main :: Effect Unit
 main = launchAff_ do
   runSpec [ consoleReporter ] do
 
-    describe "Client" do
+    describe "Yoga.BetterAuth.Client" do
 
       it "sign up, sign in, get session, sign out" do
         client <- mkClient # liftEffect
@@ -75,7 +75,7 @@ main = launchAff_ do
           Right _ -> fail "Expected Left"
           Left e -> e.status `shouldSatisfy` (_ > 0)
 
-    describe "Om" do
+    describe "Yoga.BetterAuth.Om" do
 
       it "sign up, get session, sign out" do
         client <- mkClient # liftEffect
