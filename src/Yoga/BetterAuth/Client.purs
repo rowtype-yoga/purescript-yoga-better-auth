@@ -20,18 +20,17 @@ import Data.Nullable (Nullable, toMaybe)
 import Effect (Effect)
 import Effect.Aff (Aff)
 import Effect.Uncurried (EffectFn1, EffectFn2, runEffectFn1, runEffectFn2)
-import Foreign (Foreign)
 import Prim.Row (class Union)
 import Promise (Promise)
 import Promise.Aff as Promise
-import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult)
+import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientSessionWithUser, ClientSignInResult, ClientSignUpResult, Plugin)
 import Yoga.BetterAuth.Types (Auth, AuthClient, ClientError, ClientUser, ClientSession, ClientSessionWithUser, ClientSignUpResult, ClientSignInResult, User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
 
 foreign import data FetchOptions :: Type
 
 type AuthClientOptionsImpl =
   ( baseURL :: String
-  , plugins :: Array Foreign
+  , plugins :: Array Plugin
   , fetchOptions :: FetchOptions
   )
 

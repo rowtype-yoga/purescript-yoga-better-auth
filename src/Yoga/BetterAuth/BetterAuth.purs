@@ -23,7 +23,7 @@ import Promise.Aff as Promise
 import Effect.Aff (Aff)
 import Prim.Row (class Union)
 import Unsafe.Coerce (unsafeCoerce)
-import Yoga.BetterAuth.Types (Api, Auth, SessionWithUser, SignUpResult, SignInResult)
+import Yoga.BetterAuth.Types (Api, Auth, Plugin, SessionWithUser, SignUpResult, SignInResult)
 import Yoga.BetterAuth.Types (Api, Auth, AuthClient, User, Session, Account, SessionWithUser, SignUpResult, SignInResult) as Yoga.BetterAuth.Types
 import Yoga.Fetch (Response) as Fetch
 
@@ -36,7 +36,7 @@ type BetterAuthOptionsImpl =
   , emailAndPassword :: EmailAndPassword
   , socialProviders :: Foreign
   , trustedOrigins :: Array String
-  , plugins :: Array Foreign
+  , plugins :: Array Plugin
   )
 
 foreign import betterAuthImpl :: forall opts. EffectFn1 { | opts } Auth

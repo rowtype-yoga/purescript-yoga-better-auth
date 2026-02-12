@@ -9,6 +9,8 @@ foreign import data Api :: Type
 
 foreign import data AuthClient :: Type
 
+foreign import data Plugin :: Type
+
 type User =
   { id :: String
   , email :: String
