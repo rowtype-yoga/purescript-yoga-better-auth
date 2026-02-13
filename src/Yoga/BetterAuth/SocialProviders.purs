@@ -9,167 +9,266 @@ module Yoga.BetterAuth.SocialProviders
   -- Google
   , GoogleProvider
   , GoogleProviderImpl
+  , GoogleClientId(..)
+  , GoogleClientSecret(..)
   , google
+  , google'
   , googleId
   -- GitHub
   , GithubProvider
   , GithubProviderImpl
+  , GithubClientId(..)
+  , GithubClientSecret(..)
   , github
+  , github'
   , githubId
   -- Apple
   , AppleProvider
   , AppleProviderImpl
+  , AppleClientId(..)
+  , AppleClientSecret(..)
   , apple
+  , apple'
   , appleId
   -- Atlassian
   , AtlassianProvider
   , AtlassianProviderImpl
+  , AtlassianClientId(..)
+  , AtlassianClientSecret(..)
   , atlassian
+  , atlassian'
   , atlassianId
   -- Cognito
   , CognitoProvider
   , CognitoProviderImpl
+  , CognitoClientId(..)
+  , CognitoClientSecret(..)
   , cognito
+  , cognito'
   , cognitoId
   -- Discord
   , DiscordProvider
   , DiscordProviderImpl
+  , DiscordClientId(..)
+  , DiscordClientSecret(..)
   , discord
+  , discord'
   , discordId
   -- Dropbox
   , DropboxProvider
   , DropboxProviderImpl
+  , DropboxClientId(..)
+  , DropboxClientSecret(..)
   , dropbox
+  , dropbox'
   , dropboxId
   -- Facebook
   , FacebookProvider
   , FacebookProviderImpl
+  , FacebookClientId(..)
+  , FacebookClientSecret(..)
   , facebook
+  , facebook'
   , facebookId
   -- Figma
   , FigmaProvider
   , FigmaProviderImpl
+  , FigmaClientId(..)
+  , FigmaClientSecret(..)
   , figma
+  , figma'
   , figmaId
   -- GitLab
   , GitlabProvider
   , GitlabProviderImpl
+  , GitlabClientId(..)
+  , GitlabClientSecret(..)
   , gitlab
+  , gitlab'
   , gitlabId
   -- HuggingFace
   , HuggingfaceProvider
   , HuggingfaceProviderImpl
+  , HuggingfaceClientId(..)
+  , HuggingfaceClientSecret(..)
   , huggingface
+  , huggingface'
   , huggingfaceId
   -- Kakao
   , KakaoProvider
   , KakaoProviderImpl
+  , KakaoClientId(..)
+  , KakaoClientSecret(..)
   , kakao
+  , kakao'
   , kakaoId
   -- Kick
   , KickProvider
   , KickProviderImpl
+  , KickClientId(..)
+  , KickClientSecret(..)
   , kick
+  , kick'
   , kickId
   -- Line
   , LineProvider
   , LineProviderImpl
+  , LineClientId(..)
+  , LineClientSecret(..)
   , line
+  , line'
   , lineId
   -- Linear
   , LinearProvider
   , LinearProviderImpl
+  , LinearClientId(..)
+  , LinearClientSecret(..)
   , linear
+  , linear'
   , linearId
   -- LinkedIn
   , LinkedinProvider
   , LinkedinProviderImpl
+  , LinkedinClientId(..)
+  , LinkedinClientSecret(..)
   , linkedin
+  , linkedin'
   , linkedinId
   -- Microsoft
   , MicrosoftProvider
   , MicrosoftProviderImpl
+  , MicrosoftClientId(..)
+  , MicrosoftClientSecret(..)
   , microsoft
+  , microsoft'
   , microsoftId
   -- Naver
   , NaverProvider
   , NaverProviderImpl
+  , NaverClientId(..)
+  , NaverClientSecret(..)
   , naver
+  , naver'
   , naverId
   -- Notion
   , NotionProvider
   , NotionProviderImpl
+  , NotionClientId(..)
+  , NotionClientSecret(..)
   , notion
+  , notion'
   , notionId
   -- Paybin
   , PaybinProvider
   , PaybinProviderImpl
+  , PaybinClientId(..)
+  , PaybinClientSecret(..)
   , paybin
+  , paybin'
   , paybinId
   -- PayPal
   , PaypalProvider
   , PaypalProviderImpl
+  , PaypalClientId(..)
+  , PaypalClientSecret(..)
   , paypal
+  , paypal'
   , paypalId
   -- Polar
   , PolarProvider
   , PolarProviderImpl
+  , PolarClientId(..)
+  , PolarClientSecret(..)
   , polar
+  , polar'
   , polarId
   -- Reddit
   , RedditProvider
   , RedditProviderImpl
+  , RedditClientId(..)
+  , RedditClientSecret(..)
   , reddit
+  , reddit'
   , redditId
   -- Roblox
   , RobloxProvider
   , RobloxProviderImpl
+  , RobloxClientId(..)
+  , RobloxClientSecret(..)
   , roblox
+  , roblox'
   , robloxId
   -- Salesforce
   , SalesforceProvider
   , SalesforceProviderImpl
+  , SalesforceClientId(..)
+  , SalesforceClientSecret(..)
   , salesforce
+  , salesforce'
   , salesforceId
   -- Slack
   , SlackProvider
   , SlackProviderImpl
+  , SlackClientId(..)
+  , SlackClientSecret(..)
   , slack
+  , slack'
   , slackId
   -- Spotify
   , SpotifyProvider
   , SpotifyProviderImpl
+  , SpotifyClientId(..)
+  , SpotifyClientSecret(..)
   , spotify
+  , spotify'
   , spotifyId
   -- TikTok
   , TiktokProvider
   , TiktokProviderImpl
+  , TiktokClientId(..)
+  , TiktokClientSecret(..)
   , tiktok
+  , tiktok'
   , tiktokId
   -- Twitch
   , TwitchProvider
   , TwitchProviderImpl
+  , TwitchClientId(..)
+  , TwitchClientSecret(..)
   , twitch
+  , twitch'
   , twitchId
   -- Twitter
   , TwitterProvider
   , TwitterProviderImpl
+  , TwitterClientId(..)
+  , TwitterClientSecret(..)
   , twitter
+  , twitter'
   , twitterId
   -- Vercel
   , VercelProvider
   , VercelProviderImpl
+  , VercelClientId(..)
+  , VercelClientSecret(..)
   , vercel
+  , vercel'
   , vercelId
   -- VK
   , VkProvider
   , VkProviderImpl
+  , VkClientId(..)
+  , VkClientSecret(..)
   , vk
+  , vk'
   , vkId
   -- Zoom
   , ZoomProvider
   , ZoomProviderImpl
+  , ZoomClientId(..)
+  , ZoomClientSecret(..)
   , zoom
+  , zoom'
   , zoomId
   ) where
 
@@ -216,8 +315,15 @@ type GoogleProviderImpl = BaseProviderImpl
   , hd :: String
   )
 
-google :: forall opts opts_. Union opts opts_ GoogleProviderImpl => { | opts } -> GoogleProvider
-google opts = GoogleProvider (unsafeCoerce opts)
+newtype GoogleClientId = GoogleClientId String
+newtype GoogleClientSecret = GoogleClientSecret String
+
+google :: GoogleClientId -> GoogleClientSecret -> GoogleProvider
+google (GoogleClientId cid) (GoogleClientSecret csecret) =
+  GoogleProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+google' :: forall opts opts_. Union opts opts_ GoogleProviderImpl => { | opts } -> GoogleProvider
+google' opts = GoogleProvider (unsafeCoerce opts)
 
 googleId :: ProviderId
 googleId = ProviderId "google"
@@ -230,8 +336,15 @@ newtype GithubProvider = GithubProvider Foreign
 
 type GithubProviderImpl = BaseProviderImpl ()
 
-github :: forall opts opts_. Union opts opts_ GithubProviderImpl => { | opts } -> GithubProvider
-github opts = GithubProvider (unsafeCoerce opts)
+newtype GithubClientId = GithubClientId String
+newtype GithubClientSecret = GithubClientSecret String
+
+github :: GithubClientId -> GithubClientSecret -> GithubProvider
+github (GithubClientId cid) (GithubClientSecret csecret) =
+  GithubProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+github' :: forall opts opts_. Union opts opts_ GithubProviderImpl => { | opts } -> GithubProvider
+github' opts = GithubProvider (unsafeCoerce opts)
 
 githubId :: ProviderId
 githubId = ProviderId "github"
@@ -247,8 +360,15 @@ type AppleProviderImpl = BaseProviderImpl
   , audience :: String
   )
 
-apple :: forall opts opts_. Union opts opts_ AppleProviderImpl => { | opts } -> AppleProvider
-apple opts = AppleProvider (unsafeCoerce opts)
+newtype AppleClientId = AppleClientId String
+newtype AppleClientSecret = AppleClientSecret String
+
+apple :: AppleClientId -> AppleClientSecret -> AppleProvider
+apple (AppleClientId cid) (AppleClientSecret csecret) =
+  AppleProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+apple' :: forall opts opts_. Union opts opts_ AppleProviderImpl => { | opts } -> AppleProvider
+apple' opts = AppleProvider (unsafeCoerce opts)
 
 appleId :: ProviderId
 appleId = ProviderId "apple"
@@ -261,8 +381,15 @@ newtype AtlassianProvider = AtlassianProvider Foreign
 
 type AtlassianProviderImpl = BaseProviderImpl ()
 
-atlassian :: forall opts opts_. Union opts opts_ AtlassianProviderImpl => { | opts } -> AtlassianProvider
-atlassian opts = AtlassianProvider (unsafeCoerce opts)
+newtype AtlassianClientId = AtlassianClientId String
+newtype AtlassianClientSecret = AtlassianClientSecret String
+
+atlassian :: AtlassianClientId -> AtlassianClientSecret -> AtlassianProvider
+atlassian (AtlassianClientId cid) (AtlassianClientSecret csecret) =
+  AtlassianProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+atlassian' :: forall opts opts_. Union opts opts_ AtlassianProviderImpl => { | opts } -> AtlassianProvider
+atlassian' opts = AtlassianProvider (unsafeCoerce opts)
 
 atlassianId :: ProviderId
 atlassianId = ProviderId "atlassian"
@@ -280,8 +407,15 @@ type CognitoProviderImpl = BaseProviderImpl
   , requireClientSecret :: Boolean
   )
 
-cognito :: forall opts opts_. Union opts opts_ CognitoProviderImpl => { | opts } -> CognitoProvider
-cognito opts = CognitoProvider (unsafeCoerce opts)
+newtype CognitoClientId = CognitoClientId String
+newtype CognitoClientSecret = CognitoClientSecret String
+
+cognito :: CognitoClientId -> CognitoClientSecret -> CognitoProvider
+cognito (CognitoClientId cid) (CognitoClientSecret csecret) =
+  CognitoProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+cognito' :: forall opts opts_. Union opts opts_ CognitoProviderImpl => { | opts } -> CognitoProvider
+cognito' opts = CognitoProvider (unsafeCoerce opts)
 
 cognitoId :: ProviderId
 cognitoId = ProviderId "cognito"
@@ -296,8 +430,15 @@ type DiscordProviderImpl = BaseProviderImpl
   ( permissions :: Int
   )
 
-discord :: forall opts opts_. Union opts opts_ DiscordProviderImpl => { | opts } -> DiscordProvider
-discord opts = DiscordProvider (unsafeCoerce opts)
+newtype DiscordClientId = DiscordClientId String
+newtype DiscordClientSecret = DiscordClientSecret String
+
+discord :: DiscordClientId -> DiscordClientSecret -> DiscordProvider
+discord (DiscordClientId cid) (DiscordClientSecret csecret) =
+  DiscordProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+discord' :: forall opts opts_. Union opts opts_ DiscordProviderImpl => { | opts } -> DiscordProvider
+discord' opts = DiscordProvider (unsafeCoerce opts)
 
 discordId :: ProviderId
 discordId = ProviderId "discord"
@@ -312,8 +453,15 @@ type DropboxProviderImpl = BaseProviderImpl
   ( accessType :: String
   )
 
-dropbox :: forall opts opts_. Union opts opts_ DropboxProviderImpl => { | opts } -> DropboxProvider
-dropbox opts = DropboxProvider (unsafeCoerce opts)
+newtype DropboxClientId = DropboxClientId String
+newtype DropboxClientSecret = DropboxClientSecret String
+
+dropbox :: DropboxClientId -> DropboxClientSecret -> DropboxProvider
+dropbox (DropboxClientId cid) (DropboxClientSecret csecret) =
+  DropboxProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+dropbox' :: forall opts opts_. Union opts opts_ DropboxProviderImpl => { | opts } -> DropboxProvider
+dropbox' opts = DropboxProvider (unsafeCoerce opts)
 
 dropboxId :: ProviderId
 dropboxId = ProviderId "dropbox"
@@ -329,8 +477,15 @@ type FacebookProviderImpl = BaseProviderImpl
   , configId :: String
   )
 
-facebook :: forall opts opts_. Union opts opts_ FacebookProviderImpl => { | opts } -> FacebookProvider
-facebook opts = FacebookProvider (unsafeCoerce opts)
+newtype FacebookClientId = FacebookClientId String
+newtype FacebookClientSecret = FacebookClientSecret String
+
+facebook :: FacebookClientId -> FacebookClientSecret -> FacebookProvider
+facebook (FacebookClientId cid) (FacebookClientSecret csecret) =
+  FacebookProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+facebook' :: forall opts opts_. Union opts opts_ FacebookProviderImpl => { | opts } -> FacebookProvider
+facebook' opts = FacebookProvider (unsafeCoerce opts)
 
 facebookId :: ProviderId
 facebookId = ProviderId "facebook"
@@ -343,8 +498,15 @@ newtype FigmaProvider = FigmaProvider Foreign
 
 type FigmaProviderImpl = BaseProviderImpl ()
 
-figma :: forall opts opts_. Union opts opts_ FigmaProviderImpl => { | opts } -> FigmaProvider
-figma opts = FigmaProvider (unsafeCoerce opts)
+newtype FigmaClientId = FigmaClientId String
+newtype FigmaClientSecret = FigmaClientSecret String
+
+figma :: FigmaClientId -> FigmaClientSecret -> FigmaProvider
+figma (FigmaClientId cid) (FigmaClientSecret csecret) =
+  FigmaProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+figma' :: forall opts opts_. Union opts opts_ FigmaProviderImpl => { | opts } -> FigmaProvider
+figma' opts = FigmaProvider (unsafeCoerce opts)
 
 figmaId :: ProviderId
 figmaId = ProviderId "figma"
@@ -359,8 +521,15 @@ type GitlabProviderImpl = BaseProviderImpl
   ( issuer :: String
   )
 
-gitlab :: forall opts opts_. Union opts opts_ GitlabProviderImpl => { | opts } -> GitlabProvider
-gitlab opts = GitlabProvider (unsafeCoerce opts)
+newtype GitlabClientId = GitlabClientId String
+newtype GitlabClientSecret = GitlabClientSecret String
+
+gitlab :: GitlabClientId -> GitlabClientSecret -> GitlabProvider
+gitlab (GitlabClientId cid) (GitlabClientSecret csecret) =
+  GitlabProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+gitlab' :: forall opts opts_. Union opts opts_ GitlabProviderImpl => { | opts } -> GitlabProvider
+gitlab' opts = GitlabProvider (unsafeCoerce opts)
 
 gitlabId :: ProviderId
 gitlabId = ProviderId "gitlab"
@@ -373,8 +542,15 @@ newtype HuggingfaceProvider = HuggingfaceProvider Foreign
 
 type HuggingfaceProviderImpl = BaseProviderImpl ()
 
-huggingface :: forall opts opts_. Union opts opts_ HuggingfaceProviderImpl => { | opts } -> HuggingfaceProvider
-huggingface opts = HuggingfaceProvider (unsafeCoerce opts)
+newtype HuggingfaceClientId = HuggingfaceClientId String
+newtype HuggingfaceClientSecret = HuggingfaceClientSecret String
+
+huggingface :: HuggingfaceClientId -> HuggingfaceClientSecret -> HuggingfaceProvider
+huggingface (HuggingfaceClientId cid) (HuggingfaceClientSecret csecret) =
+  HuggingfaceProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+huggingface' :: forall opts opts_. Union opts opts_ HuggingfaceProviderImpl => { | opts } -> HuggingfaceProvider
+huggingface' opts = HuggingfaceProvider (unsafeCoerce opts)
 
 huggingfaceId :: ProviderId
 huggingfaceId = ProviderId "huggingface"
@@ -387,8 +563,15 @@ newtype KakaoProvider = KakaoProvider Foreign
 
 type KakaoProviderImpl = BaseProviderImpl ()
 
-kakao :: forall opts opts_. Union opts opts_ KakaoProviderImpl => { | opts } -> KakaoProvider
-kakao opts = KakaoProvider (unsafeCoerce opts)
+newtype KakaoClientId = KakaoClientId String
+newtype KakaoClientSecret = KakaoClientSecret String
+
+kakao :: KakaoClientId -> KakaoClientSecret -> KakaoProvider
+kakao (KakaoClientId cid) (KakaoClientSecret csecret) =
+  KakaoProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+kakao' :: forall opts opts_. Union opts opts_ KakaoProviderImpl => { | opts } -> KakaoProvider
+kakao' opts = KakaoProvider (unsafeCoerce opts)
 
 kakaoId :: ProviderId
 kakaoId = ProviderId "kakao"
@@ -401,8 +584,15 @@ newtype KickProvider = KickProvider Foreign
 
 type KickProviderImpl = BaseProviderImpl ()
 
-kick :: forall opts opts_. Union opts opts_ KickProviderImpl => { | opts } -> KickProvider
-kick opts = KickProvider (unsafeCoerce opts)
+newtype KickClientId = KickClientId String
+newtype KickClientSecret = KickClientSecret String
+
+kick :: KickClientId -> KickClientSecret -> KickProvider
+kick (KickClientId cid) (KickClientSecret csecret) =
+  KickProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+kick' :: forall opts opts_. Union opts opts_ KickProviderImpl => { | opts } -> KickProvider
+kick' opts = KickProvider (unsafeCoerce opts)
 
 kickId :: ProviderId
 kickId = ProviderId "kick"
@@ -415,8 +605,15 @@ newtype LineProvider = LineProvider Foreign
 
 type LineProviderImpl = BaseProviderImpl ()
 
-line :: forall opts opts_. Union opts opts_ LineProviderImpl => { | opts } -> LineProvider
-line opts = LineProvider (unsafeCoerce opts)
+newtype LineClientId = LineClientId String
+newtype LineClientSecret = LineClientSecret String
+
+line :: LineClientId -> LineClientSecret -> LineProvider
+line (LineClientId cid) (LineClientSecret csecret) =
+  LineProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+line' :: forall opts opts_. Union opts opts_ LineProviderImpl => { | opts } -> LineProvider
+line' opts = LineProvider (unsafeCoerce opts)
 
 lineId :: ProviderId
 lineId = ProviderId "line"
@@ -429,8 +626,15 @@ newtype LinearProvider = LinearProvider Foreign
 
 type LinearProviderImpl = BaseProviderImpl ()
 
-linear :: forall opts opts_. Union opts opts_ LinearProviderImpl => { | opts } -> LinearProvider
-linear opts = LinearProvider (unsafeCoerce opts)
+newtype LinearClientId = LinearClientId String
+newtype LinearClientSecret = LinearClientSecret String
+
+linear :: LinearClientId -> LinearClientSecret -> LinearProvider
+linear (LinearClientId cid) (LinearClientSecret csecret) =
+  LinearProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+linear' :: forall opts opts_. Union opts opts_ LinearProviderImpl => { | opts } -> LinearProvider
+linear' opts = LinearProvider (unsafeCoerce opts)
 
 linearId :: ProviderId
 linearId = ProviderId "linear"
@@ -443,8 +647,15 @@ newtype LinkedinProvider = LinkedinProvider Foreign
 
 type LinkedinProviderImpl = BaseProviderImpl ()
 
-linkedin :: forall opts opts_. Union opts opts_ LinkedinProviderImpl => { | opts } -> LinkedinProvider
-linkedin opts = LinkedinProvider (unsafeCoerce opts)
+newtype LinkedinClientId = LinkedinClientId String
+newtype LinkedinClientSecret = LinkedinClientSecret String
+
+linkedin :: LinkedinClientId -> LinkedinClientSecret -> LinkedinProvider
+linkedin (LinkedinClientId cid) (LinkedinClientSecret csecret) =
+  LinkedinProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+linkedin' :: forall opts opts_. Union opts opts_ LinkedinProviderImpl => { | opts } -> LinkedinProvider
+linkedin' opts = LinkedinProvider (unsafeCoerce opts)
 
 linkedinId :: ProviderId
 linkedinId = ProviderId "linkedin"
@@ -462,8 +673,15 @@ type MicrosoftProviderImpl = BaseProviderImpl
   , disableProfilePhoto :: Boolean
   )
 
-microsoft :: forall opts opts_. Union opts opts_ MicrosoftProviderImpl => { | opts } -> MicrosoftProvider
-microsoft opts = MicrosoftProvider (unsafeCoerce opts)
+newtype MicrosoftClientId = MicrosoftClientId String
+newtype MicrosoftClientSecret = MicrosoftClientSecret String
+
+microsoft :: MicrosoftClientId -> MicrosoftClientSecret -> MicrosoftProvider
+microsoft (MicrosoftClientId cid) (MicrosoftClientSecret csecret) =
+  MicrosoftProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+microsoft' :: forall opts opts_. Union opts opts_ MicrosoftProviderImpl => { | opts } -> MicrosoftProvider
+microsoft' opts = MicrosoftProvider (unsafeCoerce opts)
 
 microsoftId :: ProviderId
 microsoftId = ProviderId "microsoft"
@@ -476,8 +694,15 @@ newtype NaverProvider = NaverProvider Foreign
 
 type NaverProviderImpl = BaseProviderImpl ()
 
-naver :: forall opts opts_. Union opts opts_ NaverProviderImpl => { | opts } -> NaverProvider
-naver opts = NaverProvider (unsafeCoerce opts)
+newtype NaverClientId = NaverClientId String
+newtype NaverClientSecret = NaverClientSecret String
+
+naver :: NaverClientId -> NaverClientSecret -> NaverProvider
+naver (NaverClientId cid) (NaverClientSecret csecret) =
+  NaverProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+naver' :: forall opts opts_. Union opts opts_ NaverProviderImpl => { | opts } -> NaverProvider
+naver' opts = NaverProvider (unsafeCoerce opts)
 
 naverId :: ProviderId
 naverId = ProviderId "naver"
@@ -490,8 +715,15 @@ newtype NotionProvider = NotionProvider Foreign
 
 type NotionProviderImpl = BaseProviderImpl ()
 
-notion :: forall opts opts_. Union opts opts_ NotionProviderImpl => { | opts } -> NotionProvider
-notion opts = NotionProvider (unsafeCoerce opts)
+newtype NotionClientId = NotionClientId String
+newtype NotionClientSecret = NotionClientSecret String
+
+notion :: NotionClientId -> NotionClientSecret -> NotionProvider
+notion (NotionClientId cid) (NotionClientSecret csecret) =
+  NotionProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+notion' :: forall opts opts_. Union opts opts_ NotionProviderImpl => { | opts } -> NotionProvider
+notion' opts = NotionProvider (unsafeCoerce opts)
 
 notionId :: ProviderId
 notionId = ProviderId "notion"
@@ -506,8 +738,15 @@ type PaybinProviderImpl = BaseProviderImpl
   ( issuer :: String
   )
 
-paybin :: forall opts opts_. Union opts opts_ PaybinProviderImpl => { | opts } -> PaybinProvider
-paybin opts = PaybinProvider (unsafeCoerce opts)
+newtype PaybinClientId = PaybinClientId String
+newtype PaybinClientSecret = PaybinClientSecret String
+
+paybin :: PaybinClientId -> PaybinClientSecret -> PaybinProvider
+paybin (PaybinClientId cid) (PaybinClientSecret csecret) =
+  PaybinProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+paybin' :: forall opts opts_. Union opts opts_ PaybinProviderImpl => { | opts } -> PaybinProvider
+paybin' opts = PaybinProvider (unsafeCoerce opts)
 
 paybinId :: ProviderId
 paybinId = ProviderId "paybin"
@@ -523,8 +762,15 @@ type PaypalProviderImpl = BaseProviderImpl
   , requestShippingAddress :: Boolean
   )
 
-paypal :: forall opts opts_. Union opts opts_ PaypalProviderImpl => { | opts } -> PaypalProvider
-paypal opts = PaypalProvider (unsafeCoerce opts)
+newtype PaypalClientId = PaypalClientId String
+newtype PaypalClientSecret = PaypalClientSecret String
+
+paypal :: PaypalClientId -> PaypalClientSecret -> PaypalProvider
+paypal (PaypalClientId cid) (PaypalClientSecret csecret) =
+  PaypalProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+paypal' :: forall opts opts_. Union opts opts_ PaypalProviderImpl => { | opts } -> PaypalProvider
+paypal' opts = PaypalProvider (unsafeCoerce opts)
 
 paypalId :: ProviderId
 paypalId = ProviderId "paypal"
@@ -537,8 +783,15 @@ newtype PolarProvider = PolarProvider Foreign
 
 type PolarProviderImpl = BaseProviderImpl ()
 
-polar :: forall opts opts_. Union opts opts_ PolarProviderImpl => { | opts } -> PolarProvider
-polar opts = PolarProvider (unsafeCoerce opts)
+newtype PolarClientId = PolarClientId String
+newtype PolarClientSecret = PolarClientSecret String
+
+polar :: PolarClientId -> PolarClientSecret -> PolarProvider
+polar (PolarClientId cid) (PolarClientSecret csecret) =
+  PolarProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+polar' :: forall opts opts_. Union opts opts_ PolarProviderImpl => { | opts } -> PolarProvider
+polar' opts = PolarProvider (unsafeCoerce opts)
 
 polarId :: ProviderId
 polarId = ProviderId "polar"
@@ -553,8 +806,15 @@ type RedditProviderImpl = BaseProviderImpl
   ( duration :: String
   )
 
-reddit :: forall opts opts_. Union opts opts_ RedditProviderImpl => { | opts } -> RedditProvider
-reddit opts = RedditProvider (unsafeCoerce opts)
+newtype RedditClientId = RedditClientId String
+newtype RedditClientSecret = RedditClientSecret String
+
+reddit :: RedditClientId -> RedditClientSecret -> RedditProvider
+reddit (RedditClientId cid) (RedditClientSecret csecret) =
+  RedditProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+reddit' :: forall opts opts_. Union opts opts_ RedditProviderImpl => { | opts } -> RedditProvider
+reddit' opts = RedditProvider (unsafeCoerce opts)
 
 redditId :: ProviderId
 redditId = ProviderId "reddit"
@@ -567,8 +827,15 @@ newtype RobloxProvider = RobloxProvider Foreign
 
 type RobloxProviderImpl = BaseProviderImpl ()
 
-roblox :: forall opts opts_. Union opts opts_ RobloxProviderImpl => { | opts } -> RobloxProvider
-roblox opts = RobloxProvider (unsafeCoerce opts)
+newtype RobloxClientId = RobloxClientId String
+newtype RobloxClientSecret = RobloxClientSecret String
+
+roblox :: RobloxClientId -> RobloxClientSecret -> RobloxProvider
+roblox (RobloxClientId cid) (RobloxClientSecret csecret) =
+  RobloxProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+roblox' :: forall opts opts_. Union opts opts_ RobloxProviderImpl => { | opts } -> RobloxProvider
+roblox' opts = RobloxProvider (unsafeCoerce opts)
 
 robloxId :: ProviderId
 robloxId = ProviderId "roblox"
@@ -584,8 +851,15 @@ type SalesforceProviderImpl = BaseProviderImpl
   , loginUrl :: String
   )
 
-salesforce :: forall opts opts_. Union opts opts_ SalesforceProviderImpl => { | opts } -> SalesforceProvider
-salesforce opts = SalesforceProvider (unsafeCoerce opts)
+newtype SalesforceClientId = SalesforceClientId String
+newtype SalesforceClientSecret = SalesforceClientSecret String
+
+salesforce :: SalesforceClientId -> SalesforceClientSecret -> SalesforceProvider
+salesforce (SalesforceClientId cid) (SalesforceClientSecret csecret) =
+  SalesforceProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+salesforce' :: forall opts opts_. Union opts opts_ SalesforceProviderImpl => { | opts } -> SalesforceProvider
+salesforce' opts = SalesforceProvider (unsafeCoerce opts)
 
 salesforceId :: ProviderId
 salesforceId = ProviderId "salesforce"
@@ -598,8 +872,15 @@ newtype SlackProvider = SlackProvider Foreign
 
 type SlackProviderImpl = BaseProviderImpl ()
 
-slack :: forall opts opts_. Union opts opts_ SlackProviderImpl => { | opts } -> SlackProvider
-slack opts = SlackProvider (unsafeCoerce opts)
+newtype SlackClientId = SlackClientId String
+newtype SlackClientSecret = SlackClientSecret String
+
+slack :: SlackClientId -> SlackClientSecret -> SlackProvider
+slack (SlackClientId cid) (SlackClientSecret csecret) =
+  SlackProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+slack' :: forall opts opts_. Union opts opts_ SlackProviderImpl => { | opts } -> SlackProvider
+slack' opts = SlackProvider (unsafeCoerce opts)
 
 slackId :: ProviderId
 slackId = ProviderId "slack"
@@ -612,8 +893,15 @@ newtype SpotifyProvider = SpotifyProvider Foreign
 
 type SpotifyProviderImpl = BaseProviderImpl ()
 
-spotify :: forall opts opts_. Union opts opts_ SpotifyProviderImpl => { | opts } -> SpotifyProvider
-spotify opts = SpotifyProvider (unsafeCoerce opts)
+newtype SpotifyClientId = SpotifyClientId String
+newtype SpotifyClientSecret = SpotifyClientSecret String
+
+spotify :: SpotifyClientId -> SpotifyClientSecret -> SpotifyProvider
+spotify (SpotifyClientId cid) (SpotifyClientSecret csecret) =
+  SpotifyProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+spotify' :: forall opts opts_. Union opts opts_ SpotifyProviderImpl => { | opts } -> SpotifyProvider
+spotify' opts = SpotifyProvider (unsafeCoerce opts)
 
 spotifyId :: ProviderId
 spotifyId = ProviderId "spotify"
@@ -639,8 +927,15 @@ type TiktokProviderImpl =
   , disableIdTokenSignIn :: Boolean
   )
 
-tiktok :: forall opts opts_. Union opts opts_ TiktokProviderImpl => { | opts } -> TiktokProvider
-tiktok opts = TiktokProvider (unsafeCoerce opts)
+newtype TiktokClientId = TiktokClientId String
+newtype TiktokClientSecret = TiktokClientSecret String
+
+tiktok :: TiktokClientId -> TiktokClientSecret -> TiktokProvider
+tiktok (TiktokClientId cid) (TiktokClientSecret csecret) =
+  TiktokProvider (unsafeCoerce { clientKey: cid, clientSecret: csecret })
+
+tiktok' :: forall opts opts_. Union opts opts_ TiktokProviderImpl => { | opts } -> TiktokProvider
+tiktok' opts = TiktokProvider (unsafeCoerce opts)
 
 tiktokId :: ProviderId
 tiktokId = ProviderId "tiktok"
@@ -655,8 +950,15 @@ type TwitchProviderImpl = BaseProviderImpl
   ( claims :: Array String
   )
 
-twitch :: forall opts opts_. Union opts opts_ TwitchProviderImpl => { | opts } -> TwitchProvider
-twitch opts = TwitchProvider (unsafeCoerce opts)
+newtype TwitchClientId = TwitchClientId String
+newtype TwitchClientSecret = TwitchClientSecret String
+
+twitch :: TwitchClientId -> TwitchClientSecret -> TwitchProvider
+twitch (TwitchClientId cid) (TwitchClientSecret csecret) =
+  TwitchProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+twitch' :: forall opts opts_. Union opts opts_ TwitchProviderImpl => { | opts } -> TwitchProvider
+twitch' opts = TwitchProvider (unsafeCoerce opts)
 
 twitchId :: ProviderId
 twitchId = ProviderId "twitch"
@@ -669,8 +971,15 @@ newtype TwitterProvider = TwitterProvider Foreign
 
 type TwitterProviderImpl = BaseProviderImpl ()
 
-twitter :: forall opts opts_. Union opts opts_ TwitterProviderImpl => { | opts } -> TwitterProvider
-twitter opts = TwitterProvider (unsafeCoerce opts)
+newtype TwitterClientId = TwitterClientId String
+newtype TwitterClientSecret = TwitterClientSecret String
+
+twitter :: TwitterClientId -> TwitterClientSecret -> TwitterProvider
+twitter (TwitterClientId cid) (TwitterClientSecret csecret) =
+  TwitterProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+twitter' :: forall opts opts_. Union opts opts_ TwitterProviderImpl => { | opts } -> TwitterProvider
+twitter' opts = TwitterProvider (unsafeCoerce opts)
 
 twitterId :: ProviderId
 twitterId = ProviderId "twitter"
@@ -683,8 +992,15 @@ newtype VercelProvider = VercelProvider Foreign
 
 type VercelProviderImpl = BaseProviderImpl ()
 
-vercel :: forall opts opts_. Union opts opts_ VercelProviderImpl => { | opts } -> VercelProvider
-vercel opts = VercelProvider (unsafeCoerce opts)
+newtype VercelClientId = VercelClientId String
+newtype VercelClientSecret = VercelClientSecret String
+
+vercel :: VercelClientId -> VercelClientSecret -> VercelProvider
+vercel (VercelClientId cid) (VercelClientSecret csecret) =
+  VercelProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+vercel' :: forall opts opts_. Union opts opts_ VercelProviderImpl => { | opts } -> VercelProvider
+vercel' opts = VercelProvider (unsafeCoerce opts)
 
 vercelId :: ProviderId
 vercelId = ProviderId "vercel"
@@ -699,8 +1015,15 @@ type VkProviderImpl = BaseProviderImpl
   ( scheme :: String
   )
 
-vk :: forall opts opts_. Union opts opts_ VkProviderImpl => { | opts } -> VkProvider
-vk opts = VkProvider (unsafeCoerce opts)
+newtype VkClientId = VkClientId String
+newtype VkClientSecret = VkClientSecret String
+
+vk :: VkClientId -> VkClientSecret -> VkProvider
+vk (VkClientId cid) (VkClientSecret csecret) =
+  VkProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+vk' :: forall opts opts_. Union opts opts_ VkProviderImpl => { | opts } -> VkProvider
+vk' opts = VkProvider (unsafeCoerce opts)
 
 vkId :: ProviderId
 vkId = ProviderId "vk"
@@ -715,8 +1038,15 @@ type ZoomProviderImpl = BaseProviderImpl
   ( pkce :: Boolean
   )
 
-zoom :: forall opts opts_. Union opts opts_ ZoomProviderImpl => { | opts } -> ZoomProvider
-zoom opts = ZoomProvider (unsafeCoerce opts)
+newtype ZoomClientId = ZoomClientId String
+newtype ZoomClientSecret = ZoomClientSecret String
+
+zoom :: ZoomClientId -> ZoomClientSecret -> ZoomProvider
+zoom (ZoomClientId cid) (ZoomClientSecret csecret) =
+  ZoomProvider (unsafeCoerce { clientId: cid, clientSecret: csecret })
+
+zoom' :: forall opts opts_. Union opts opts_ ZoomProviderImpl => { | opts } -> ZoomProvider
+zoom' opts = ZoomProvider (unsafeCoerce opts)
 
 zoomId :: ProviderId
 zoomId = ProviderId "zoom"
