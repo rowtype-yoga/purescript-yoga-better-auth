@@ -18,11 +18,31 @@ import Test.Spec.Config (defaultConfig)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpecPure')
 import Yoga.BetterAuth.BetterAuth as Server
+import Yoga.BetterAuth.BetterAuth (EmailAndPassword)
 import Yoga.BetterAuth.Client as Client
 import Yoga.BetterAuth.Om as AuthOm
-import Yoga.BetterAuth.Types (AuthClient, Email(..), Password(..), UserName(..), SessionId(..), Token(..), UserId(..))
+import Yoga.BetterAuth.OmLayer as OmLayer
+import Yoga.BetterAuth.Types (Auth, AuthClient, Database, Email(..), Password(..), UserName(..), SessionId(..), Token(..), UserId(..))
+import Yoga.Om.Layer (OmLayer, runLayer, (>->))
 import Yoga.Test.Docker as Docker
 import Yoga.Om as Om
+
+type BetterAuthConfig = (secret :: String, baseURL :: String, emailAndPassword :: EmailAndPassword)
+
+type TestStackLayer = OmLayer
+  (connectionString :: String, baseURL :: String, betterAuthConfig :: { | BetterAuthConfig })
+  (auth :: Auth, database :: Database, authClient :: AuthClient)
+  ()
+
+type AuthFullLayer = OmLayer
+  (connectionString :: String, betterAuthConfig :: { | BetterAuthConfig })
+  (auth :: Auth, database :: Database)
+  ()
+
+type ComposedLayer = OmLayer
+  (connectionString :: String)
+  (auth :: Auth)
+  ()
 
 mkClient :: Effect AuthClient
 mkClient = do
@@ -122,4 +142,63 @@ main = launchAff_ do
           AuthOm.clientSignInEmail { email: Email "pg@test.com", password: Password "password123" }
         un Token token `shouldSatisfy` (not <<< String.null)
         Server.pgPoolEnd db
+        Docker.stopService composeFile
+
+    describe "Yoga.BetterAuth.OmLayer" do
+
+      let
+        betterAuthConfig =
+          { secret: "test-secret-that-is-at-least-32-chars-long!!"
+          , baseURL: "http://localhost:3000"
+          , emailAndPassword: Server.emailAndPassword { enabled: true }
+          }
+
+      it "testStackLive provides auth + client from config" do
+        Docker.startService composeFile (Docker.Timeout (Milliseconds 30000.0))
+        let
+          ctx =
+            { connectionString: "postgresql://test:test@localhost:5433/better_auth_test"
+            , baseURL: "http://localhost:3000"
+            , betterAuthConfig
+            }
+        let layer = OmLayer.testStackLive :: TestStackLayer
+        { authClient, database } <- Om.runOm ctx
+          { exception: \e -> throwError (error ("Layer failed: " <> show e)) }
+          (runLayer ctx layer)
+        { user } <- runAuth authClient do
+          AuthOm.clientSignUpEmail { email: Email "layer@test.com", password: Password "password123", name: UserName "LayerUser" }
+        user.email `shouldEqual` Email "layer@test.com"
+        Server.pgPoolEnd database
+        Docker.stopService composeFile
+
+      it "betterAuthLive' composes with databaseLive via >->" do
+        Docker.startService composeFile (Docker.Timeout (Milliseconds 30000.0))
+        let ctx = { connectionString: "postgresql://test:test@localhost:5433/better_auth_test" }
+        let layer = OmLayer.betterAuthLive' betterAuthConfig >-> OmLayer.databaseLive :: ComposedLayer
+        { auth } <- Om.runOm ctx
+          { exception: \e -> throwError (error ("Layer failed: " <> show e)) }
+          (runLayer ctx layer)
+        Server.runMigrations auth
+        client <- Client.createTestClient "http://localhost:3000" auth # liftEffect
+        { user } <- runAuth client do
+          AuthOm.clientSignUpEmail { email: Email "compose@test.com", password: Password "password123", name: UserName "ComposeUser" }
+        user.email `shouldEqual` Email "compose@test.com"
+        Docker.stopService composeFile
+
+      it "authFullLive sets up database + auth + migrations" do
+        Docker.startService composeFile (Docker.Timeout (Milliseconds 30000.0))
+        let
+          ctx =
+            { connectionString: "postgresql://test:test@localhost:5433/better_auth_test"
+            , betterAuthConfig
+            }
+        let layer = OmLayer.authFullLive :: AuthFullLayer
+        { auth, database } <- Om.runOm ctx
+          { exception: \e -> throwError (error ("Layer failed: " <> show e)) }
+          (runLayer ctx layer)
+        client <- Client.createTestClient "http://localhost:3000" auth # liftEffect
+        { user } <- runAuth client do
+          AuthOm.clientSignUpEmail { email: Email "full@test.com", password: Password "password123", name: UserName "FullUser" }
+        user.email `shouldEqual` Email "full@test.com"
+        Server.pgPoolEnd database
         Docker.stopService composeFile
