@@ -165,15 +165,7 @@ omPostgresSpec = describe "Yoga.BetterAuth.Om (Postgres)" do
 omLayerSpec :: Spec Unit
 omLayerSpec = describe "Yoga.BetterAuth.OmLayer" do
 
-  it "testStackLive provides auth + client from config" do
-    let ctx = { connectionString, baseURL, betterAuthConfig }
-    let layer = OmLayer.testStackLive :: TestStackLayer
-    withDocker do
-      { authClient, database } <- runLayerOm ctx layer
-      { user } <- runAuth authClient do
-        AuthOm.clientSignUpEmail { email: Email "layer@test.com", password: Password "password123", name: UserName "LayerUser" }
-      user.email `shouldEqual` Email "layer@test.com"
-      Server.pgPoolEnd database
+  it "testStackLive provides auth + client from config" testStackLiveTest
 
   it "betterAuthLive' composes with databaseLive via >->" do
     let ctx = { connectionString }
@@ -196,3 +188,14 @@ omLayerSpec = describe "Yoga.BetterAuth.OmLayer" do
         AuthOm.clientSignUpEmail { email: Email "full@test.com", password: Password "password123", name: UserName "FullUser" }
       user.email `shouldEqual` Email "full@test.com"
       Server.pgPoolEnd database
+
+testStackLiveTest :: Aff Unit
+testStackLiveTest = do
+  let ctx = { connectionString, baseURL, betterAuthConfig }
+  let layer = OmLayer.testStackLive :: TestStackLayer
+  withDocker do
+    { authClient, database } <- runLayerOm ctx layer
+    { user } <- runAuth authClient do
+      AuthOm.clientSignUpEmail { email: Email "layer@test.com", password: Password "password123", name: UserName "LayerUser" }
+    user.email `shouldEqual` Email "layer@test.com"
+    Server.pgPoolEnd database
