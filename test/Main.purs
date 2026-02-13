@@ -10,6 +10,8 @@ import Data.Time.Duration (Milliseconds(..))
 import Effect (Effect)
 import Effect.Aff (Aff, launchAff_)
 import Effect.Class (liftEffect)
+import Effect.Exception (error)
+import Control.Monad.Error.Class (throwError)
 import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy, fail)
 import Test.Spec.Config (defaultConfig)
@@ -20,7 +22,6 @@ import Yoga.BetterAuth.Client as Client
 import Yoga.BetterAuth.Om as AuthOm
 import Yoga.BetterAuth.Types (AuthClient, Email(..), Password(..), UserName(..), SessionId(..), Token(..), UserId(..))
 import Yoga.Test.Docker as Docker
-import Partial.Unsafe as Partial.Unsafe
 import Yoga.Om as Om
 
 mkClient :: Effect AuthClient
@@ -49,12 +50,9 @@ mkPostgresClient = do
 
 runAuth :: forall a. AuthClient -> Om.Om { authClient :: AuthClient } (authError :: Client.ClientError) a -> Aff a
 runAuth client = Om.runOm { authClient: client }
-  { exception: \e -> fail ("Unexpected exception: " <> show e) *> unsafeCrashWith "unreachable"
-  , authError: \e -> fail ("Unexpected auth error: " <> e.message) *> unsafeCrashWith "unreachable"
+  { exception: \e -> throwError (error ("Unexpected exception: " <> show e))
+  , authError: \e -> throwError (error ("Unexpected auth error: " <> e.message))
   }
-  where
-  unsafeCrashWith :: forall b. String -> Aff b
-  unsafeCrashWith = liftEffect <<< Partial.Unsafe.unsafeCrashWith
 
 composeFile :: Docker.ComposeFile
 composeFile = Docker.ComposeFile "docker-compose.test.yml"
