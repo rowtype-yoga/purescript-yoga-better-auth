@@ -34,13 +34,12 @@ import Yoga.BetterAuth.Types (Auth, AuthClient, Database)
 import Yoga.Om as Om
 import Yoga.Om.Layer (OmLayer, makeLayer)
 
--- Type aliases for provided rows
 type DatabaseL r = (database :: Database | r)
+
 type BetterAuthL r = (auth :: Auth | r)
+
 type AuthClientL r = (authClient :: AuthClient | r)
 
--- | Calls betterAuth({ ...config, database }).
--- | Type safety is enforced by the Lacks + Union constraints on callers.
 foreign import betterAuthWithDatabaseImpl :: forall r. EffectFn2 Database { | r } Auth
 
 mkAuth
@@ -110,7 +109,10 @@ authWithDatabaseLive
   :: forall r opts opts_
    . Lacks "database" opts
   => Union opts opts_ BetterAuthOptionsImpl
-  => OmLayer (connectionString :: String, betterAuthConfig :: { | opts } | r) (auth :: Auth, database :: Database) ()
+  => OmLayer
+       (connectionString :: String, betterAuthConfig :: { | opts } | r)
+       (auth :: Auth, database :: Database)
+       ()
 authWithDatabaseLive = makeLayer do
   { connectionString, betterAuthConfig } <- Om.ask
   database <- Server.pgPool connectionString # liftEffect
@@ -121,7 +123,10 @@ authFullLive
   :: forall r opts opts_
    . Lacks "database" opts
   => Union opts opts_ BetterAuthOptionsImpl
-  => OmLayer (connectionString :: String, betterAuthConfig :: { | opts } | r) (auth :: Auth, database :: Database) ()
+  => OmLayer
+       (connectionString :: String, betterAuthConfig :: { | opts } | r)
+       (auth :: Auth, database :: Database)
+       ()
 authFullLive = makeLayer do
   { connectionString, betterAuthConfig } <- Om.ask
   database <- Server.pgPool connectionString # liftEffect
@@ -133,7 +138,10 @@ testStackLive
   :: forall r opts opts_
    . Lacks "database" opts
   => Union opts opts_ BetterAuthOptionsImpl
-  => OmLayer (connectionString :: String, baseURL :: String, betterAuthConfig :: { | opts } | r) (auth :: Auth, database :: Database, authClient :: AuthClient) ()
+  => OmLayer
+       (connectionString :: String, baseURL :: String, betterAuthConfig :: { | opts } | r)
+       (auth :: Auth, database :: Database, authClient :: AuthClient)
+       ()
 testStackLive = makeLayer do
   { connectionString, baseURL, betterAuthConfig } <- Om.ask
   database <- Server.pgPool connectionString # liftEffect
