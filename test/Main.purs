@@ -22,27 +22,17 @@ import Yoga.BetterAuth.BetterAuth (EmailAndPassword)
 import Yoga.BetterAuth.Client as Client
 import Yoga.BetterAuth.Om as AuthOm
 import Yoga.BetterAuth.OmLayer as OmLayer
-import Yoga.BetterAuth.Types (Auth, AuthClient, Database, Email(..), Password(..), UserName(..), SessionId(..), Token(..), UserId(..))
-import Yoga.Om.Layer (OmLayer, class CheckAllProvided, runLayer, (>->))
+import Yoga.BetterAuth.Types (Auth, AuthClient, Email(..), Password(..), UserName(..), SessionId(..), Token(..), UserId(..))
+import Yoga.Om.Layer (OmLayer, Scope, withScoped, (>->))
 import Yoga.Test.Docker as Docker
 import Yoga.Om as Om
 
 type BetterAuthConfig = (secret :: String, baseURL :: String, emailAndPassword :: EmailAndPassword)
 
-type TestStackLayer = OmLayer
-  (connectionString :: String, baseURL :: String, betterAuthConfig :: { | BetterAuthConfig })
-  (auth :: Auth, database :: Database, authClient :: AuthClient)
-  ()
-
-type AuthFullLayer = OmLayer
-  (connectionString :: String, betterAuthConfig :: { | BetterAuthConfig })
-  (auth :: Auth, database :: Database)
-  ()
-
 type ComposedLayer = OmLayer
-  (connectionString :: String)
-  (auth :: Auth)
+  (scope :: Scope)
   ()
+  { auth :: Auth }
 
 secret :: String
 secret = "test-secret-that-is-at-least-32-chars-long!!"
@@ -73,11 +63,6 @@ runAuth client = Om.runOm { authClient: client }
   { exception: \e -> throwError (error ("Unexpected exception: " <> show e))
   , authError: \e -> throwError (error ("Unexpected auth error: " <> e.message))
   }
-
-runLayerOm :: forall ctx prov. CheckAllProvided ctx ctx => { | ctx } -> OmLayer ctx prov () -> Aff { | prov }
-runLayerOm ctx layer = Om.runOm ctx
-  { exception: \e -> throwError (error ("Layer failed: " <> show e)) }
-  (runLayer ctx layer)
 
 withDocker :: Aff Unit -> Aff Unit
 withDocker action = do
@@ -165,43 +150,36 @@ omPostgresSpec = describe "Yoga.BetterAuth.Om (Postgres)" do
 omLayerSpec :: Spec Unit
 omLayerSpec = describe "Yoga.BetterAuth.OmLayer" do
 
-  it "testStackLive provides auth + client from config" do
-    withDocker testStackLiveTest
+  it "testStackLive provides auth + client from config" testStackLiveTest
 
   it "betterAuthLive' composes with databaseLive via >->" do
-    let ctx = { connectionString }
-    let layer = OmLayer.betterAuthLive' betterAuthConfig >-> OmLayer.databaseLive :: ComposedLayer
+    let layer = OmLayer.betterAuthLive' betterAuthConfig >-> OmLayer.databaseLive' connectionString :: ComposedLayer
     withDocker do
-      { auth } <- runLayerOm ctx layer
-      Server.runMigrations auth
-      client <- Client.createTestClient baseURL auth # liftEffect
-      { user } <- runAuth client do
-        AuthOm.clientSignUpEmail { email: Email "compose@test.com", password: Password "password123", name: UserName "ComposeUser" }
-      user.email `shouldEqual` Email "compose@test.com"
+      withScoped layer \{ auth } -> do
+        Server.runMigrations auth
+        client <- Client.createTestClient baseURL auth # liftEffect
+        { user } <- runAuth client do
+          AuthOm.clientSignUpEmail { email: Email "compose@test.com", password: Password "password123", name: UserName "ComposeUser" }
+        user.email `shouldEqual` Email "compose@test.com"
 
   it "authFullLive sets up database + auth + migrations" do
-    let ctx = { connectionString, betterAuthConfig }
-    let layer = OmLayer.authFullLive :: AuthFullLayer
     withDocker do
-      { auth, database } <- runLayerOm ctx layer
-      client <- Client.createTestClient baseURL auth # liftEffect
-      { user } <- runAuth client do
-        AuthOm.clientSignUpEmail { email: Email "full@test.com", password: Password "password123", name: UserName "FullUser" }
-      user.email `shouldEqual` Email "full@test.com"
-      Server.pgPoolEnd database
+      withScoped (OmLayer.authFullLive connectionString betterAuthConfig) \{ auth } -> do
+        client <- Client.createTestClient baseURL auth # liftEffect
+        { user } <- runAuth client do
+          AuthOm.clientSignUpEmail { email: Email "full@test.com", password: Password "password123", name: UserName "FullUser" }
+        user.email `shouldEqual` Email "full@test.com"
 
 testStackLiveTest :: Aff Unit
-testStackLiveTest = do
-  provided <- OmLayer.testStackLive # runLayerOm ctx
-  { user } <- Om.runOm provided
-    { exception: \e -> throwError (error ("Unexpected: " <> show e))
-    , authError: \e -> throwError (error ("Auth error: " <> e.message))
-    }
-    do AuthOm.clientSignUpEmail { email, password, name }
-  user.email `shouldEqual` email
-  Server.pgPoolEnd provided.database
+testStackLiveTest = withDocker do
+  withScoped (OmLayer.testStackLive connectionString baseURL betterAuthConfig) \provided -> do
+    { user } <- Om.runOm provided
+      { exception: \e -> throwError (error ("Unexpected: " <> show e))
+      , authError: \e -> throwError (error ("Auth error: " <> e.message))
+      }
+      do AuthOm.clientSignUpEmail { email, password, name }
+    user.email `shouldEqual` email
   where
-  ctx = { connectionString, baseURL, betterAuthConfig }
   email = Email "layer@test.com"
   password = Password "password123"
   name = UserName "LayerUser"

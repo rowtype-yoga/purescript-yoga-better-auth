@@ -661,7 +661,9 @@
       "yoga-fastify": "0.2.3",
       "yoga-http-api": "0.1.4",
       "yoga-om": "1.2.2",
-      "yoga-om-layer": "1.0.6",
+      "yoga-om-layer": {
+        "path": "../purescript-yoga-om-layer"
+      },
       "yoga-options": "0.1.0",
       "yoga-test-docker": {
         "path": "../purescript-yoga-test-docker"
@@ -702,6 +704,26 @@
         "exceptions",
         "foreign",
         "prelude",
+        "transformers"
+      ]
+    },
+    "aff-retry": {
+      "type": "registry",
+      "version": "2.0.0",
+      "integrity": "sha256-rKZNcP4IKSyBFQBVzrCvE0ULoJt0N/uDLLJ0dPotr4k=",
+      "dependencies": [
+        "aff",
+        "arrays",
+        "datetime",
+        "effect",
+        "either",
+        "exceptions",
+        "integers",
+        "maybe",
+        "newtype",
+        "numbers",
+        "prelude",
+        "random",
         "transformers"
       ]
     },
@@ -1574,6 +1596,16 @@
         "tuples"
       ]
     },
+    "random": {
+      "type": "registry",
+      "version": "6.0.0",
+      "integrity": "sha256-7sZRo6P9UIiXDZ9s2QL9T8h3wlIwLdQrR4+oZKOijQw=",
+      "dependencies": [
+        "effect",
+        "integers",
+        "prelude"
+      ]
+    },
     "record": {
       "type": "registry",
       "version": "4.0.0",
@@ -1998,17 +2030,25 @@
       ]
     },
     "yoga-om-layer": {
-      "type": "registry",
-      "version": "1.0.6",
-      "integrity": "sha256-RrCaTvkiMwCFarWKbu0Dkq+yFz4hDM7x18gZok2OxV4=",
+      "type": "local",
+      "path": "../purescript-yoga-om-layer",
       "dependencies": [
         "aff",
-        "newtype",
+        "aff-retry",
+        "arrays",
+        "effect",
+        "exceptions",
+        "foldable-traversable",
+        "integers",
+        "maybe",
+        "nullable",
+        "ordered-collections",
         "prelude",
         "record",
         "record-studio",
         "type-equality",
         "unsafe-coerce",
+        "variant",
         "yoga-om"
       ]
     },

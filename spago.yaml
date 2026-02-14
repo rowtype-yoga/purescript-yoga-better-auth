@@ -5,7 +5,8 @@ workspace:
     yoga-fastify: "0.2.3"
     yoga-http-api: "0.1.4"
     yoga-om: "1.2.2"
-    yoga-om-layer: "1.0.6"
+    yoga-om-layer:
+      path: ../purescript-yoga-om-layer
     yoga-options: "0.1.0"
     yoga-test-docker:
       path: ../purescript-yoga-test-docker
