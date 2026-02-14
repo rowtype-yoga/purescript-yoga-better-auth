@@ -6,9 +6,9 @@ module Yoga.BetterAuth.OmLayer
   , betterAuthLive'
   , migrationsLive
   , testClientLive
+  , testClientLive'
   , browserClientLive
-  -- Convenience compositions
-  , authWithDatabaseLive
+  -- Convenience compositions (via wireLayers)
   , authFullLive
   , testStackLive
   -- Type aliases
@@ -37,8 +37,6 @@ type BetterAuthL r = (auth :: Auth | r)
 
 type AuthClientL r = (authClient :: AuthClient | r)
 
-foreign import betterAuthWithDatabaseImpl :: forall r. EffectFn2 Database { | r } Auth
-
 mkAuth
   :: forall opts opts_
    . Lacks "database" opts
@@ -46,8 +44,9 @@ mkAuth
   => Database
   -> { | opts }
   -> Effect Auth
-mkAuth database betterAuthConfig =
-  runEffectFn2 betterAuthWithDatabaseImpl database betterAuthConfig
+mkAuth = runEffectFn2 betterAuthWithDatabaseImpl
+
+foreign import betterAuthWithDatabaseImpl :: forall r. EffectFn2 Database { | r } Auth
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- Individual Layers
@@ -63,12 +62,9 @@ databaseLive = makeScopedLayer acquire release
   release { database } = Server.pgPoolEnd database
 
 databaseLive' :: String -> OmLayer (scope :: Scope) () { database :: Database }
-databaseLive' connectionString = makeScopedLayer acquire release
-  where
-  acquire = do
-    database <- Server.pgPool connectionString # liftEffect
-    pure { database }
-  release { database } = Server.pgPoolEnd database
+databaseLive' connectionString = makeLayer do
+  database <- acquireDatabase connectionString
+  pure { database }
 
 betterAuthLive
   :: forall r opts opts_
@@ -103,6 +99,12 @@ testClientLive = makeLayer do
   authClient <- Client.createTestClient baseURL auth # liftEffect
   pure { authClient }
 
+testClientLive' :: forall r. String -> OmLayer (auth :: Auth | r) () { authClient :: AuthClient }
+testClientLive' baseURL = makeLayer do
+  { auth } <- Om.ask
+  authClient <- Client.createTestClient baseURL auth # liftEffect
+  pure { authClient }
+
 browserClientLive :: forall r. OmLayer (baseURL :: String | r) () { authClient :: AuthClient }
 browserClientLive = makeLayer do
   { baseURL } <- Om.ask
@@ -110,21 +112,8 @@ browserClientLive = makeLayer do
   pure { authClient }
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
--- Convenience Compositions
+-- Convenience Compositions (via wireLayers)
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-authWithDatabaseLive
-  :: forall opts opts_
-   . Lacks "database" opts
-  => Union opts opts_ BetterAuthOptionsImpl
-  => { connectionString :: String, betterAuthConfig :: { | opts } }
-  -> OmLayer (scope :: Scope) () { auth :: Auth, database :: Database }
-authWithDatabaseLive { connectionString, betterAuthConfig } = makeLayer do
-  database <- acquireRelease
-    (Server.pgPool connectionString # liftEffect)
-    Server.pgPoolEnd
-  auth <- mkAuth database betterAuthConfig # liftEffect
-  pure { auth, database }
 
 authFullLive
   :: forall opts opts_
@@ -133,9 +122,7 @@ authFullLive
   => { connectionString :: String, betterAuthConfig :: { | opts } }
   -> OmLayer (scope :: Scope) () { auth :: Auth, database :: Database }
 authFullLive { connectionString, betterAuthConfig } = makeLayer do
-  database <- acquireRelease
-    (Server.pgPool connectionString # liftEffect)
-    Server.pgPoolEnd
+  database <- acquireDatabase connectionString
   auth <- mkAuth database betterAuthConfig # liftEffect
   Server.runMigrations auth # liftAff
   pure { auth, database }
@@ -147,10 +134,14 @@ testStackLive
   => { connectionString :: String, baseURL :: String, betterAuthConfig :: { | opts } }
   -> OmLayer (scope :: Scope) () { auth :: Auth, database :: Database, authClient :: AuthClient }
 testStackLive { connectionString, baseURL, betterAuthConfig } = makeLayer do
-  database <- acquireRelease
-    (Server.pgPool connectionString # liftEffect)
-    Server.pgPoolEnd
+  database <- acquireDatabase connectionString
   auth <- mkAuth database betterAuthConfig # liftEffect
   Server.runMigrations auth # liftAff
   authClient <- Client.createTestClient baseURL auth # liftEffect
   pure { auth, database, authClient }
+
+acquireDatabase :: forall r. String -> Om.Om { scope :: Scope | r } () Database
+acquireDatabase connectionString =
+  acquireRelease
+    (Server.pgPool connectionString # liftEffect)
+    Server.pgPoolEnd

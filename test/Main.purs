@@ -130,22 +130,15 @@ omPostgresSpec = describe "Yoga.BetterAuth.Om (Postgres)" do
 
   it "sign up and sign in with real Postgres" do
     withDocker do
-      { client, db } <- mkPostgresClient
-      signUp <- runAuth client do
-        AuthClient.signUpEmail { email: Email "pg@test.com", password: Password "password123", name: UserName "PgUser" }
-      signUp.user.email `shouldEqual` Email "pg@test.com"
-      signUp.user.name `shouldEqual` UserName "PgUser"
-      signIn <- runAuth client do
-        AuthClient.signInEmail { email: Email "pg@test.com", password: Password "password123" }
-      un Token signIn.token `shouldSatisfy` (not <<< String.null)
-      Server.pgPoolEnd db
-  where
-  mkPostgresClient = do
-    db <- Server.pgPool connectionString # liftEffect
-    auth <- Server.betterAuth { database: db, secret, baseURL, emailAndPassword: Server.emailAndPassword { enabled: true } } # liftEffect
-    Server.runMigrations auth
-    client <- Client.createTestClient baseURL auth # liftEffect
-    pure { client, db }
+      withScoped (OmLayer.authFullLive { connectionString, betterAuthConfig }) \{ auth } -> do
+        client <- Client.createTestClient baseURL auth # liftEffect
+        signUp <- runAuth client do
+          AuthClient.signUpEmail { email: Email "pg@test.com", password: Password "password123", name: UserName "PgUser" }
+        signUp.user.email `shouldEqual` Email "pg@test.com"
+        signUp.user.name `shouldEqual` UserName "PgUser"
+        signIn <- runAuth client do
+          AuthClient.signInEmail { email: Email "pg@test.com", password: Password "password123" }
+        un Token signIn.token `shouldSatisfy` (not <<< String.null)
 
 omLayerSpec :: Spec Unit
 omLayerSpec = describe "Yoga.BetterAuth.OmLayer" do
@@ -161,14 +154,6 @@ omLayerSpec = describe "Yoga.BetterAuth.OmLayer" do
         { user } <- runAuth client do
           AuthClient.signUpEmail { email: Email "compose@test.com", password: Password "password123", name: UserName "ComposeUser" }
         user.email `shouldEqual` Email "compose@test.com"
-
-  it "authFullLive sets up database + auth + migrations" do
-    withDocker do
-      withScoped (OmLayer.authFullLive { connectionString, betterAuthConfig }) \{ auth } -> do
-        client <- Client.createTestClient baseURL auth # liftEffect
-        { user } <- runAuth client do
-          AuthClient.signUpEmail { email: Email "full@test.com", password: Password "password123", name: UserName "FullUser" }
-        user.email `shouldEqual` Email "full@test.com"
 
 testStackLiveTest :: Aff Unit
 testStackLiveTest = withDocker do
