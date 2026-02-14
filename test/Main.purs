@@ -165,7 +165,8 @@ omPostgresSpec = describe "Yoga.BetterAuth.Om (Postgres)" do
 omLayerSpec :: Spec Unit
 omLayerSpec = describe "Yoga.BetterAuth.OmLayer" do
 
-  it "testStackLive provides auth + client from config" testStackLiveTest
+  it "testStackLive provides auth + client from config" do
+    withDocker testStackLiveTest
 
   it "betterAuthLive' composes with databaseLive via >->" do
     let ctx = { connectionString }
@@ -191,11 +192,16 @@ omLayerSpec = describe "Yoga.BetterAuth.OmLayer" do
 
 testStackLiveTest :: Aff Unit
 testStackLiveTest = do
-  let ctx = { connectionString, baseURL, betterAuthConfig }
-  let layer = OmLayer.testStackLive :: TestStackLayer
-  withDocker do
-    { authClient, database } <- runLayerOm ctx layer
-    { user } <- runAuth authClient do
-      AuthOm.clientSignUpEmail { email: Email "layer@test.com", password: Password "password123", name: UserName "LayerUser" }
-    user.email `shouldEqual` Email "layer@test.com"
-    Server.pgPoolEnd database
+  provided <- OmLayer.testStackLive # runLayerOm ctx
+  { user } <- Om.runOm provided
+    { exception: \e -> throwError (error ("Unexpected: " <> show e))
+    , authError: \e -> throwError (error ("Auth error: " <> e.message))
+    }
+    do AuthOm.clientSignUpEmail { email, password, name }
+  user.email `shouldEqual` email
+  Server.pgPoolEnd provided.database
+  where
+  ctx = { connectionString, baseURL, betterAuthConfig }
+  email = Email "layer@test.com"
+  password = Password "password123"
+  name = UserName "LayerUser"
