@@ -20,7 +20,7 @@ import Test.Spec.Runner (runSpecPure')
 import Yoga.BetterAuth.BetterAuth as Server
 import Yoga.BetterAuth.BetterAuth (EmailAndPassword)
 import Yoga.BetterAuth.Client as Client
-import Yoga.BetterAuth.Om as AuthOm
+import Yoga.BetterAuth.Om.Client as AuthClient
 import Yoga.BetterAuth.OmLayer as OmLayer
 import Yoga.BetterAuth.Types (Auth, AuthClient, Email(..), Password(..), UserName(..), SessionId(..), Token(..), UserId(..))
 import Yoga.Om.Layer (OmLayer, Scope, withScoped, (>->))
@@ -84,7 +84,7 @@ omClientSpec = describe "Yoga.BetterAuth.Om" do
   it "sign up returns the user" do
     client <- mkClient # liftEffect
     { user } <- runAuth client do
-      AuthOm.clientSignUpEmail { email: Email "alice@test.com", password: Password "password123", name: UserName "Alice" }
+      AuthClient.signUpEmail { email: Email "alice@test.com", password: Password "password123", name: UserName "Alice" }
     user.email `shouldEqual` Email "alice@test.com"
     user.name `shouldEqual` UserName "Alice"
     user.emailVerified `shouldEqual` false
@@ -93,9 +93,9 @@ omClientSpec = describe "Yoga.BetterAuth.Om" do
   it "sign in returns token and user" do
     client <- mkClient # liftEffect
     runAuth client do
-      void $ AuthOm.clientSignUpEmail { email: Email "bob@test.com", password: Password "password123", name: UserName "Bob" }
+      void $ AuthClient.signUpEmail { email: Email "bob@test.com", password: Password "password123", name: UserName "Bob" }
     { token, user, redirect } <- runAuth client do
-      AuthOm.clientSignInEmail { email: Email "bob@test.com", password: Password "password123" }
+      AuthClient.signInEmail { email: Email "bob@test.com", password: Password "password123" }
     un Token token `shouldSatisfy` (not <<< String.null)
     user.email `shouldEqual` Email "bob@test.com"
     redirect `shouldEqual` false
@@ -103,8 +103,8 @@ omClientSpec = describe "Yoga.BetterAuth.Om" do
   it "get session after sign up" do
     client <- mkClient # liftEffect
     { session, user } <- runAuth client do
-      void $ AuthOm.clientSignUpEmail { email: Email "carol@test.com", password: Password "password123", name: UserName "Carol" }
-      AuthOm.clientGetSession
+      void $ AuthClient.signUpEmail { email: Email "carol@test.com", password: Password "password123", name: UserName "Carol" }
+      AuthClient.getSession
     un SessionId session.id `shouldSatisfy` (not <<< String.null)
     un Token session.token `shouldSatisfy` (not <<< String.null)
     session.userId `shouldEqual` user.id
@@ -113,14 +113,14 @@ omClientSpec = describe "Yoga.BetterAuth.Om" do
   it "sign out after sign up" do
     client <- mkClient # liftEffect
     { success } <- runAuth client do
-      void $ AuthOm.clientSignUpEmail { email: Email "dave@test.com", password: Password "password123", name: UserName "Dave" }
-      AuthOm.clientSignOut
+      void $ AuthClient.signUpEmail { email: Email "dave@test.com", password: Password "password123", name: UserName "Dave" }
+      AuthClient.signOut
     success `shouldEqual` true
 
   it "sign in with wrong password throws authError" do
     client <- mkClient # liftEffect
     result <- Om.runReader { authClient: client } do
-      AuthOm.clientSignInEmail { email: Email "nobody@test.com", password: Password "wrong" }
+      AuthClient.signInEmail { email: Email "nobody@test.com", password: Password "wrong" }
     case result of
       Right _ -> fail "Expected authError"
       Left _ -> pure unit
@@ -132,11 +132,11 @@ omPostgresSpec = describe "Yoga.BetterAuth.Om (Postgres)" do
     withDocker do
       { client, db } <- mkPostgresClient
       signUp <- runAuth client do
-        AuthOm.clientSignUpEmail { email: Email "pg@test.com", password: Password "password123", name: UserName "PgUser" }
+        AuthClient.signUpEmail { email: Email "pg@test.com", password: Password "password123", name: UserName "PgUser" }
       signUp.user.email `shouldEqual` Email "pg@test.com"
       signUp.user.name `shouldEqual` UserName "PgUser"
       signIn <- runAuth client do
-        AuthOm.clientSignInEmail { email: Email "pg@test.com", password: Password "password123" }
+        AuthClient.signInEmail { email: Email "pg@test.com", password: Password "password123" }
       un Token signIn.token `shouldSatisfy` (not <<< String.null)
       Server.pgPoolEnd db
   where
@@ -159,25 +159,25 @@ omLayerSpec = describe "Yoga.BetterAuth.OmLayer" do
         Server.runMigrations auth
         client <- Client.createTestClient baseURL auth # liftEffect
         { user } <- runAuth client do
-          AuthOm.clientSignUpEmail { email: Email "compose@test.com", password: Password "password123", name: UserName "ComposeUser" }
+          AuthClient.signUpEmail { email: Email "compose@test.com", password: Password "password123", name: UserName "ComposeUser" }
         user.email `shouldEqual` Email "compose@test.com"
 
   it "authFullLive sets up database + auth + migrations" do
     withDocker do
-      withScoped (OmLayer.authFullLive connectionString betterAuthConfig) \{ auth } -> do
+      withScoped (OmLayer.authFullLive { connectionString, betterAuthConfig }) \{ auth } -> do
         client <- Client.createTestClient baseURL auth # liftEffect
         { user } <- runAuth client do
-          AuthOm.clientSignUpEmail { email: Email "full@test.com", password: Password "password123", name: UserName "FullUser" }
+          AuthClient.signUpEmail { email: Email "full@test.com", password: Password "password123", name: UserName "FullUser" }
         user.email `shouldEqual` Email "full@test.com"
 
 testStackLiveTest :: Aff Unit
 testStackLiveTest = withDocker do
-  withScoped (OmLayer.testStackLive connectionString baseURL betterAuthConfig) \provided -> do
+  withScoped (OmLayer.testStackLive { connectionString, baseURL, betterAuthConfig }) \provided -> do
     { user } <- Om.runOm provided
       { exception: \e -> throwError (error ("Unexpected: " <> show e))
       , authError: \e -> throwError (error ("Auth error: " <> e.message))
       }
-      do AuthOm.clientSignUpEmail { email, password, name }
+      do AuthClient.signUpEmail { email, password, name }
     user.email `shouldEqual` email
   where
   email = Email "layer@test.com"

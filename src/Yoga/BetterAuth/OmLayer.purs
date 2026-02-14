@@ -15,10 +15,6 @@ module Yoga.BetterAuth.OmLayer
   , DatabaseL
   , BetterAuthL
   , AuthClientL
-  -- Backward compatible
-  , betterAuthLayer
-  , betterAuthLayer'
-  , authClientLayer
   ) where
 
 import Prelude
@@ -121,10 +117,9 @@ authWithDatabaseLive
   :: forall opts opts_
    . Lacks "database" opts
   => Union opts opts_ BetterAuthOptionsImpl
-  => String
-  -> { | opts }
+  => { connectionString :: String, betterAuthConfig :: { | opts } }
   -> OmLayer (scope :: Scope) () { auth :: Auth, database :: Database }
-authWithDatabaseLive connectionString betterAuthConfig = makeLayer do
+authWithDatabaseLive { connectionString, betterAuthConfig } = makeLayer do
   database <- acquireRelease
     (Server.pgPool connectionString # liftEffect)
     Server.pgPoolEnd
@@ -135,10 +130,9 @@ authFullLive
   :: forall opts opts_
    . Lacks "database" opts
   => Union opts opts_ BetterAuthOptionsImpl
-  => String
-  -> { | opts }
+  => { connectionString :: String, betterAuthConfig :: { | opts } }
   -> OmLayer (scope :: Scope) () { auth :: Auth, database :: Database }
-authFullLive connectionString betterAuthConfig = makeLayer do
+authFullLive { connectionString, betterAuthConfig } = makeLayer do
   database <- acquireRelease
     (Server.pgPool connectionString # liftEffect)
     Server.pgPoolEnd
@@ -150,11 +144,9 @@ testStackLive
   :: forall opts opts_
    . Lacks "database" opts
   => Union opts opts_ BetterAuthOptionsImpl
-  => String
-  -> String
-  -> { | opts }
+  => { connectionString :: String, baseURL :: String, betterAuthConfig :: { | opts } }
   -> OmLayer (scope :: Scope) () { auth :: Auth, database :: Database, authClient :: AuthClient }
-testStackLive connectionString baseURL betterAuthConfig = makeLayer do
+testStackLive { connectionString, baseURL, betterAuthConfig } = makeLayer do
   database <- acquireRelease
     (Server.pgPool connectionString # liftEffect)
     Server.pgPoolEnd
@@ -162,33 +154,3 @@ testStackLive connectionString baseURL betterAuthConfig = makeLayer do
   Server.runMigrations auth # liftAff
   authClient <- Client.createTestClient baseURL auth # liftEffect
   pure { auth, database, authClient }
-
--- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
--- Backward Compatible
--- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-betterAuthLayer
-  :: forall r opts opts_
-   . Union opts opts_ BetterAuthOptionsImpl
-  => OmLayer (betterAuthConfig :: { | opts } | r) () { auth :: Auth }
-betterAuthLayer = makeLayer do
-  { betterAuthConfig } <- Om.ask
-  auth <- Server.betterAuth betterAuthConfig # liftEffect
-  pure { auth }
-
-betterAuthLayer'
-  :: forall r opts opts_
-   . Union opts opts_ BetterAuthOptionsImpl
-  => { | opts }
-  -> OmLayer r () { auth :: Auth }
-betterAuthLayer' config = makeLayer do
-  auth <- Server.betterAuth config # liftEffect
-  pure { auth }
-
-authClientLayer
-  :: forall r
-   . OmLayer (authClientConfig :: { baseURL :: String }, auth :: Auth | r) () { authClient :: AuthClient }
-authClientLayer = makeLayer do
-  { authClientConfig, auth } <- Om.ask
-  client <- Client.createTestClient authClientConfig.baseURL auth # liftEffect
-  pure { authClient: client }

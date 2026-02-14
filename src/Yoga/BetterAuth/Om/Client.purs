@@ -1,9 +1,9 @@
 module Yoga.BetterAuth.Om.Client
-  ( clientSignUpEmail
-  , clientSignInEmail
-  , clientSignOut
-  , clientGetSession
-  , clientSignInSocial
+  ( signUpEmail
+  , signInEmail
+  , signOut
+  , getSession
+  , signInSocial
   ) where
 
 import Prelude
@@ -16,46 +16,46 @@ import Yoga.BetterAuth.Types (AuthClient, ClientError, ClientSessionWithUser, Cl
 import Yoga.Om as Om
 import Yoga.Om (throwLeftAs)
 
-clientSignUpEmail
+signUpEmail
   :: forall r err
    . { email :: Email, password :: Password, name :: UserName }
   -> Om.Om { authClient :: AuthClient | r } (authError :: ClientError | err) ClientSignUpResult
-clientSignUpEmail body = do
+signUpEmail body = do
   { authClient } <- Om.ask
   result <- Client.signUpEmail body authClient # liftAff
   result # throwLeftAs (Om.error <<< { authError: _ })
 
-clientSignInEmail
+signInEmail
   :: forall r err
    . { email :: Email, password :: Password }
   -> Om.Om { authClient :: AuthClient | r } (authError :: ClientError | err) ClientSignInResult
-clientSignInEmail body = do
+signInEmail body = do
   { authClient } <- Om.ask
   result <- Client.signInEmail body authClient # liftAff
   result # throwLeftAs (Om.error <<< { authError: _ })
 
-clientGetSession
+getSession
   :: forall r err
    . Om.Om { authClient :: AuthClient | r } (authError :: ClientError | err) ClientSessionWithUser
-clientGetSession = do
+getSession = do
   { authClient } <- Om.ask
   result <- Client.getSession authClient # liftAff
   result # throwLeftAs (Om.error <<< { authError: _ })
 
-clientSignOut
+signOut
   :: forall r err
    . Om.Om { authClient :: AuthClient | r } (authError :: ClientError | err) { success :: Boolean }
-clientSignOut = do
+signOut = do
   { authClient } <- Om.ask
   result <- Client.signOut authClient # liftAff
   result # throwLeftAs (Om.error <<< { authError: _ })
 
-clientSignInSocial
+signInSocial
   :: forall r err opts opts_
    . Union opts opts_ SignInSocialOptionsImpl
   => { provider :: ProviderId | opts }
   -> Om.Om { authClient :: AuthClient | r } (authError :: ClientError | err) SignInSocialResult
-clientSignInSocial body = do
+signInSocial body = do
   { authClient } <- Om.ask
   result <- Client.signInSocial body authClient # liftAff
   result # throwLeftAs (Om.error <<< { authError: _ })
