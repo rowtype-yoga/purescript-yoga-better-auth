@@ -158,13 +158,32 @@ omLayerSpec = describe "Yoga.BetterAuth.OmLayer" do
 testStackLiveTest :: Aff Unit
 testStackLiveTest = withDocker do
   withScoped (OmLayer.testStackLive { connectionString, baseURL, betterAuthConfig }) \provided -> do
-    { user } <- Om.runOm provided
-      { exception: \e -> throwError (error ("Unexpected: " <> show e))
-      , authError: \e -> throwError (error ("Auth error: " <> e.message))
-      }
-      do AuthClient.signUpEmail { email, password, name }
+    { user } <- runAuth' provided do
+      AuthClient.signUpEmail { email, password, name }
     user.email `shouldEqual` email
+    user.name `shouldEqual` name
+
+    { token } <- runAuth' provided do
+      AuthClient.signInEmail { email, password }
+    un Token token `shouldSatisfy` (not <<< String.null)
+
+    { session, user: sessionUser } <- runAuth' provided AuthClient.getSession
+    sessionUser.id `shouldEqual` user.id
+    un SessionId session.id `shouldSatisfy` (not <<< String.null)
+
+    { success } <- runAuth' provided AuthClient.signOut
+    success `shouldEqual` true
   where
   email = Email "layer@test.com"
   password = Password "password123"
   name = UserName "LayerUser"
+
+runAuth'
+  :: forall a r
+   . { authClient :: AuthClient | r }
+  -> Om.Om { authClient :: AuthClient | r } (authError :: Client.ClientError) a
+  -> Aff a
+runAuth' provided = Om.runOm provided
+  { exception: \e -> throwError (error ("Unexpected: " <> show e))
+  , authError: \e -> throwError (error ("Auth error: " <> e.message))
+  }
