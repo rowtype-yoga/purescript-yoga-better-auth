@@ -1,15 +1,4 @@
-workspace:
-  packageSet:
-    registry: 73.0.0
-  extraPackages:
-    yoga-fastify: "0.2.3"
-    yoga-http-api: "0.1.4"
-    yoga-om: "1.2.2"
-    yoga-om-layer:
-      path: ../purescript-yoga-om-layer
-    yoga-options: "0.1.0"
-    yoga-test-docker:
-      path: ../purescript-yoga-test-docker
+workspace: {}
 
 package:
   name: yoga-better-auth
@@ -20,27 +9,27 @@ package:
       githubOwner: rowtype-yoga
       githubRepo: purescript-yoga-better-auth
   dependencies:
-    - spec-node
-    - yoga-fetch
-    - aff: ">=7.0.0 <9.0.0"
+    - aff: ">=7.1.0 <8.0.0"
     - effect: ">=4.0.0 <5.0.0"
     - either: ">=6.1.0 <7.0.0"
+    - foldable-traversable: ">=6.0.0 <7.0.0"
     - foreign: ">=7.0.0 <8.0.0"
-    - js-date
+    - js-date: ">=8.0.0 <9.0.0"
     - js-promise: ">=1.0.0 <2.0.0"
     - js-promise-aff: ">=1.0.0 <2.0.0"
     - maybe: ">=6.0.0 <7.0.0"
     - newtype: ">=5.0.0 <6.0.0"
     - nullable: ">=6.0.0 <7.0.0"
     - prelude: ">=6.0.2 <7.0.0"
-    - strings: ">=6.0.1 <7.0.0"
     - unsafe-coerce: ">=6.0.0 <7.0.0"
-    - yoga-fastify: ">=0.2.3 <0.3.0"
-    - yoga-om
-    - yoga-om-layer: ">=1.0.0 <2.0.0"
+    - yoga-fastify: ">=0.3.0 <0.4.0"
+    - yoga-fetch: ">=1.0.1 <2.0.0"
+    - yoga-om: ">=1.4.0 <2.0.0"
+    - yoga-om-layer: ">=1.1.1 <2.0.0"
   test:
     main: Test.BetterAuth.Main
     dependencies:
       - console: ">=6.0.0 <7.0.0"
       - spec: ">=7.0.0 <8.0.0"
-      - yoga-test-docker
+      - spec-node: ">=0.0.1 <1.0.0"
+      - yoga-test-docker: ">=0.1.0 <1.0.0"
