@@ -7,6 +7,7 @@ import Data.JSDate as JSDate
 import Data.Maybe (Maybe)
 import Data.Newtype (class Newtype)
 import Effect.Unsafe (unsafePerformEffect)
+import Web.Fetch.Headers (Headers)
 
 newtype UserId = UserId String
 
@@ -65,7 +66,7 @@ foreign import data Plugin :: Type
 
 foreign import data Database :: Type
 
-foreign import data WebHeaders :: Type
+type WebHeaders = Headers
 
 foreign import data WebRequest :: Type
 
