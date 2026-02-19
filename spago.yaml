@@ -1,25 +1,19 @@
 workspace:
   packageSet:
-    registry: 73.0.0
+    registry: 73.2.0
   extraPackages:
-    yoga-om:
-      path: ../purescript-yoga-om
-    yoga-om-layer:
-      path: ../purescript-yoga-om-layer
-    yoga-fastify:
-      path: ../purescript-yoga-fastify
-    ref-lifted:
-      path: ../purescript-ref-lifted
-    yoga-http-api:
-      path: ../purescript-yoga-http-api
+    yoga-om: "1.5.1"
+    yoga-om-layer: "1.2.1"
+    yoga-fastify: "0.3.0"
+    ref-lifted: "0.0.1"
+    yoga-http-api: "0.2.0"
     yoga-options: "0.1.0"
-    yoga-test-docker:
-      path: ../purescript-yoga-test-docker
+    yoga-test-docker: "0.1.1"
 
 package:
   name: yoga-better-auth
   publish:
-    version: 0.2.0
+    version: 0.2.1
     license: MIT
     location:
       githubOwner: rowtype-yoga

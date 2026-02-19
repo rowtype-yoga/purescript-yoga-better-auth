@@ -81,7 +81,7 @@
     },
     "package_set": {
       "address": {
-        "registry": "73.0.0"
+        "registry": "73.2.0"
       },
       "compiler": ">=0.15.15 <0.16.0",
       "content": {
@@ -420,7 +420,7 @@
         "options": "7.0.0",
         "optparse": "5.0.1",
         "ordered-collections": "3.2.0",
-        "ordered-set": "0.4.0",
+        "ordered-set": "0.5.0",
         "orders": "6.0.0",
         "org-doc": "0.1.0",
         "owoify": "1.2.0",
@@ -511,6 +511,7 @@
         "selective-functors": "1.0.1",
         "semirings": "7.0.0",
         "shuffle": "2.0.0",
+        "sigil": "0.2.0",
         "signal": "13.0.0",
         "simple-emitter": "3.0.1",
         "simple-i18n": "2.0.1",
@@ -525,7 +526,7 @@
         "sparse-matrices": "2.0.1",
         "sparse-polynomials": "3.0.1",
         "spec": "8.1.1",
-        "spec-discovery": "8.4.0",
+        "spec-discovery": "8.4.1",
         "spec-mocha": "5.1.1",
         "spec-node": "0.0.3",
         "spec-quickcheck": "5.0.2",
@@ -671,25 +672,13 @@
       }
     },
     "extra_packages": {
-      "ref-lifted": {
-        "path": "../purescript-ref-lifted"
-      },
-      "yoga-fastify": {
-        "path": "../purescript-yoga-fastify"
-      },
-      "yoga-http-api": {
-        "path": "../purescript-yoga-http-api"
-      },
-      "yoga-om": {
-        "path": "../purescript-yoga-om"
-      },
-      "yoga-om-layer": {
-        "path": "../purescript-yoga-om-layer"
-      },
+      "ref-lifted": "0.0.1",
+      "yoga-fastify": "0.3.0",
+      "yoga-http-api": "0.2.0",
+      "yoga-om": "1.5.1",
+      "yoga-om-layer": "1.2.1",
       "yoga-options": "0.1.0",
-      "yoga-test-docker": {
-        "path": "../purescript-yoga-test-docker"
-      }
+      "yoga-test-docker": "0.1.1"
     }
   },
   "packages": {
@@ -1670,15 +1659,6 @@
         "unsafe-coerce"
       ]
     },
-    "ref-lifted": {
-      "type": "local",
-      "path": "../purescript-ref-lifted",
-      "dependencies": [
-        "effect",
-        "prelude",
-        "refs"
-      ]
-    },
     "refs": {
       "type": "registry",
       "version": "6.0.0",
@@ -2022,8 +2002,9 @@
       ]
     },
     "yoga-fastify": {
-      "type": "local",
-      "path": "../purescript-yoga-fastify",
+      "type": "registry",
+      "version": "0.3.0",
+      "integrity": "sha256-nQZq9ZSVFPSXFzLtC32iz4RRT0JgigFLKlAe1PGB+Lo=",
       "dependencies": [
         "aff",
         "arrays",
@@ -2065,8 +2046,9 @@
       ]
     },
     "yoga-http-api": {
-      "type": "local",
-      "path": "../purescript-yoga-http-api",
+      "type": "registry",
+      "version": "0.2.0",
+      "integrity": "sha256-zcQusL24+05UYAb2DuSBgL6nHeivVUOKOAWl5ZZWK/w=",
       "dependencies": [
         "aff",
         "arrays",
@@ -2128,8 +2110,9 @@
       ]
     },
     "yoga-om": {
-      "type": "local",
-      "path": "../purescript-yoga-om",
+      "type": "registry",
+      "version": "1.5.1",
+      "integrity": "sha256-Fx9Or+0JO7uOYcjbKX0LeY+9fuIxYilZTMd4Q1eje0k=",
       "dependencies": [
         "aff",
         "aff-retry",
@@ -2141,13 +2124,13 @@
         "either",
         "exceptions",
         "functions",
+        "heterogeneous",
         "maybe",
         "newtype",
         "parallel",
         "prelude",
         "record",
         "record-studio",
-        "ref-lifted",
         "refs",
         "tailrec",
         "transformers",
@@ -2159,8 +2142,9 @@
       ]
     },
     "yoga-om-layer": {
-      "type": "local",
-      "path": "../purescript-yoga-om-layer",
+      "type": "registry",
+      "version": "1.2.1",
+      "integrity": "sha256-7IdanBqLbr+2chIVvnxWG/QidA4cVMVIydGv+lIXU+I=",
       "dependencies": [
         "aff",
         "aff-retry",
@@ -2175,7 +2159,6 @@
         "prelude",
         "record",
         "record-studio",
-        "ref-lifted",
         "refs",
         "transformers",
         "type-equality",
@@ -2197,8 +2180,9 @@
       ]
     },
     "yoga-test-docker": {
-      "type": "local",
-      "path": "../purescript-yoga-test-docker",
+      "type": "registry",
+      "version": "0.1.1",
+      "integrity": "sha256-BKyHoGahs1D5PbjqSKL+6vvUJQ62mbpXYJOF9UwaGb8=",
       "dependencies": [
         "aff",
         "datetime",
