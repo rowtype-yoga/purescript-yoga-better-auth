@@ -24,8 +24,8 @@ package:
     - web-fetch: ">=4.0.1 <5.0.0"
     - yoga-fastify: ">=0.3.0 <0.4.0"
     - yoga-fetch: ">=1.0.1 <2.0.0"
-    - yoga-om: ">=1.4.0 <2.0.0"
-    - yoga-om-layer: ">=1.1.1 <2.0.0"
+    - yoga-om: ">=1.5.2 <2.0.0"
+    - yoga-om-layer: ">=1.2.2 <2.0.0"
   test:
     main: Test.BetterAuth.Main
     dependencies:
