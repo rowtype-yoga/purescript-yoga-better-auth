@@ -1,19 +1,8 @@
-workspace:
-  packageSet:
-    registry: 73.2.0
-  extraPackages:
-    yoga-om: "1.5.1"
-    yoga-om-layer: "1.2.1"
-    yoga-fastify: "0.3.0"
-    ref-lifted: "0.0.1"
-    yoga-http-api: "0.2.0"
-    yoga-options: "0.1.0"
-    yoga-test-docker: "0.1.1"
-
+workspace: {}
 package:
   name: yoga-better-auth
   publish:
-    version: 0.2.1
+    version: 0.2.2
     license: MIT
     location:
       githubOwner: rowtype-yoga
