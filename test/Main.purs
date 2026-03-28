@@ -2,16 +2,18 @@ module Test.BetterAuth.Main where
 
 import Prelude
 
+import Control.Monad.Error.Class (throwError)
 import Data.Either (Either(..))
+import Data.Tuple.Nested ((/\), type (/\))
 import Data.Maybe (Maybe(..))
 import Data.Newtype (un)
 import Data.String as String
 import Data.Time.Duration (Milliseconds(..))
 import Effect (Effect)
-import Effect.Aff (Aff, launchAff_)
+import Effect.Aff (Aff, finally, launchAff_)
+import Effect.Aff.Class (liftAff)
 import Effect.Class (liftEffect)
 import Effect.Exception (error)
-import Control.Monad.Error.Class (throwError)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldSatisfy, fail)
 import Test.Spec.Config (defaultConfig)
@@ -20,12 +22,22 @@ import Test.Spec.Runner (runSpecPure')
 import Yoga.BetterAuth.BetterAuth as Server
 import Yoga.BetterAuth.BetterAuth (EmailAndPassword)
 import Yoga.BetterAuth.Client as Client
+import Yoga.BetterAuth.Fastify as BetterAuth.Fastify
 import Yoga.BetterAuth.Om.Client as AuthClient
+import Yoga.BetterAuth.OmHandler (handleAuth)
 import Yoga.BetterAuth.OmLayer as OmLayer
-import Yoga.BetterAuth.Types (Auth, AuthClient, Email(..), Password(..), UserName(..), SessionId(..), Token(..), UserId(..))
-import Yoga.Om.Layer (OmLayer, Scope, withScoped, (>->))
-import Yoga.Test.Docker as Docker
+import Yoga.BetterAuth.Plugins as BetterAuth.Plugins
+import Yoga.BetterAuth.Types (Api, Auth, AuthClient, Email(..), Password(..), UserName(..), SessionId(..), Token(..), UserId(..))
+import Yoga.Fastify.Fastify as F
+import Yoga.Fastify.Om.API (registerAPILayer)
+import Yoga.Fastify.Om.Route (GET, Route, Handler, handle, respond, BearerToken)
+import Yoga.Fetch as Fetch
+import Yoga.Fetch.Impl.Node (nodeFetch)
 import Yoga.Om as Om
+import Yoga.Om.Layer (OmLayer, Scope, withScoped, runLayer, (>->))
+import Yoga.OpenTelemetry.OpenTelemetry as OTel
+import Yoga.OpenTelemetry.OmLayer as OTelOmLayer
+import Yoga.Test.Docker as Docker
 
 type BetterAuthConfig = (secret :: String, baseURL :: String, emailAndPassword :: EmailAndPassword)
 
@@ -67,8 +79,7 @@ runAuth client = Om.runOm { authClient: client }
 withDocker :: Aff Unit -> Aff Unit
 withDocker action = do
   Docker.startService composeFile (Docker.Timeout (Milliseconds 30000.0))
-  action
-  Docker.stopService composeFile
+  finally (Docker.stopService composeFile) action
 
 main :: Effect Unit
 main = launchAff_ do
@@ -77,6 +88,7 @@ main = launchAff_ do
     omClientSpec
     omPostgresSpec
     omLayerSpec
+    omHandlerSpec
 
 omClientSpec :: Spec Unit
 omClientSpec = describe "Yoga.BetterAuth.Om" do
@@ -187,3 +199,98 @@ runAuth' provided = Om.runOm provided
   { exception: \e -> throwError (error ("Unexpected: " <> show e))
   , authError: \e -> throwError (error ("Auth error: " <> e.message))
   }
+
+-- handleAuth integration test
+
+type ProtectedRoute = Route GET "protected"
+  { headers :: { authorization :: BearerToken } }
+  ( ok :: { body :: { greeting :: String } }
+  , unauthorized :: { body :: { error :: String } }
+  )
+
+type PublicRoute = Route GET "public" {}
+  (ok :: { body :: { status :: String } })
+
+type TestAPI =
+  { protected :: ProtectedRoute
+  , public :: PublicRoute
+  }
+
+protectedHandler :: Handler ProtectedRoute (authApi :: Api)
+protectedHandler = handleAuth \session -> do
+  respond @"ok" { greeting: "hello " <> un UserName session.user.name }
+
+publicHandler :: Handler PublicRoute ()
+publicHandler = handle do
+  respond @"ok" { status: "ok" }
+
+testPort :: Int
+testPort = 3457
+
+testAPILayer :: OmLayer (fastify :: F.Fastify, authApi :: Api) () {}
+testAPILayer = registerAPILayer @TestAPI
+  { protected: protectedHandler
+  , public: publicHandler
+  }
+
+otelConfig :: OTelOmLayer.OTelConfig
+otelConfig =
+  { serviceName: OTel.ServiceName "yoga-better-auth-test"
+  , serviceVersion: OTel.ServiceVersion "0.2.2"
+  , serviceNamespace: OTel.ServiceNamespace "yoga-better-auth"
+  , logsEndpoint: "http://localhost:4318/v1/logs"
+  , tracesEndpoint: "http://localhost:4318/v1/traces"
+  , tracerName: OTel.TracerName "better-auth-test"
+  }
+
+omHandlerSpec :: Spec Unit
+omHandlerSpec = describe "Yoga.BetterAuth.OmHandler" do
+
+  it "handleAuth accepts valid tokens and rejects invalid ones" do
+    withScoped (OTelOmLayer.otelLive' otelConfig) \{ tracer } -> do
+      Docker.startService composeFile (Docker.Timeout (Milliseconds 30000.0))
+      authApi /\ fastify <- startServer
+      finally (F.close fastify *> Docker.stopService composeFile) do
+        rootSpan <- OTel.startSpan (OTel.SpanName "handleAuth-integration-test") tracer # liftEffect
+
+        { token } <- withChild "sign-up-user" rootSpan tracer do
+          Server.signUpEmail { email: Email "handler@test.com", password: Password "password123", name: UserName "Handler" } authApi
+
+        withChild "fetch-protected-valid-token" rootSpan tracer do
+          resp <- fetchProtected (un Token token)
+          Fetch.statusCode resp `shouldEqual` 200
+          body <- Fetch.text resp # liftAff
+          body `shouldSatisfy` \b -> String.contains (String.Pattern "Handler") b
+
+        withChild "fetch-protected-bad-token" rootSpan tracer do
+          badResp <- fetchProtected "invalid-token"
+          Fetch.statusCode badResp `shouldEqual` 401
+
+        OTel.endSpan rootSpan # liftEffect
+  where
+  startServer :: Aff (Api /\ F.Fastify)
+  startServer = do
+    database <- Server.pgPool connectionString # liftEffect
+    auth <- Server.betterAuth
+      { secret
+      , baseURL
+      , database
+      , emailAndPassword: Server.emailAndPassword { enabled: true }
+      , plugins: [ BetterAuth.Plugins.bearer ]
+      }
+      # liftEffect
+    Server.runMigrations auth # liftAff
+    authApi <- Server.api auth # liftEffect
+    fastify <- F.fastify {} # liftEffect
+    BetterAuth.Fastify.registerAuth {} auth fastify # liftEffect
+    let ctx = { fastify, authApi }
+    _ <- Om.runOm ctx { exception: throwError } $ runLayer ctx testAPILayer
+    _ <- F.listen { port: F.Port testPort, host: F.Host "127.0.0.1" } fastify
+    pure (authApi /\ fastify)
+
+  withChild :: forall a. String -> OTel.Span -> OTel.Tracer -> Aff a -> Aff a
+  withChild name = OTel.withChildSpanAff (OTel.SpanName name)
+
+  fetchProtected token = Fetch.fetch nodeFetch
+    (Fetch.URL $ "http://127.0.0.1:" <> show testPort <> "/protected")
+    { method: Fetch.getMethod, headers: Fetch.makeHeaders { authorization: "Bearer " <> token } }

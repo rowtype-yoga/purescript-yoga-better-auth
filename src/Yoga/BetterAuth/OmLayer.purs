@@ -59,7 +59,7 @@ databaseLive = makeScopedLayer acquire release
     { connectionString } <- Om.ask
     database <- Server.pgPool connectionString # liftEffect
     pure { database }
-  release { database } = Server.pgPoolEnd database
+  release _ = pure unit
 
 databaseLive' :: String -> OmLayer (scope :: Scope) () { database :: Database }
 databaseLive' connectionString = makeLayer do
@@ -144,4 +144,4 @@ acquireDatabase :: forall r. String -> Om.Om { scope :: Scope | r } () Database
 acquireDatabase connectionString =
   acquireRelease
     (Server.pgPool connectionString # liftEffect)
-    Server.pgPoolEnd
+    (const (pure unit))

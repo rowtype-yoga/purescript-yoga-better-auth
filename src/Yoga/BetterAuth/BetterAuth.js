@@ -4,8 +4,11 @@ import pg from "pg";
 
 export const betterAuthImpl = (opts) => betterAuth(opts);
 
-export const pgPoolImpl = (connectionString) =>
-  new pg.Pool({ connectionString });
+export const pgPoolImpl = (connectionString) => {
+  const pool = new pg.Pool({ connectionString });
+  pool.on("error", () => {});
+  return pool;
+};
 
 export const pgPoolEndImpl = (pool) => pool.end();
 

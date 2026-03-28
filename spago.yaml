@@ -1,4 +1,29 @@
-workspace: {}
+workspace:
+  packageSet:
+    registry: 73.0.0
+  extraPackages:
+    yoga-om:
+      path: ../purescript-yoga-om
+    yoga-om-layer:
+      path: ../purescript-yoga-om-layer
+    yoga-http-api:
+      path: ../purescript-yoga-http-api
+    yoga-fastify:
+      path: ../purescript-yoga-fastify
+    yoga-fastify-om:
+      path: ../purescript-yoga-fastify-om
+    yoga-om-strom:
+      path: ../purescript-yoga-om-strom
+    yoga-options:
+      path: ../purescript-yoga-options
+    compile-fail:
+      path: ../purescript-compile-fail
+    yoga-test-docker:
+      path: ../purescript-yoga-test-docker
+    yoga-json:
+      path: ../purescript-yoga-json
+    yoga-opentelemetry:
+      path: ../purescript-yoga-opentelemetry
 package:
   name: yoga-better-auth
   publish:
@@ -22,10 +47,12 @@ package:
     - prelude: ">=6.0.2 <7.0.0"
     - unsafe-coerce: ">=6.0.0 <7.0.0"
     - web-fetch: ">=4.0.1 <5.0.0"
-    - yoga-fastify: ">=0.3.0 <0.4.0"
+    - yoga-fastify
     - yoga-fetch: ">=1.0.1 <2.0.0"
-    - yoga-om: ">=1.5.2 <2.0.0"
-    - yoga-om-layer: ">=1.2.2 <2.0.0"
+    - yoga-om
+    - yoga-om-layer
+    - yoga-fastify-om
+    - yoga-http-api
   test:
     main: Test.BetterAuth.Main
     dependencies:
@@ -33,3 +60,4 @@ package:
       - spec: ">=7.0.0 <9.0.0"
       - spec-node: ">=0.0.1 <1.0.0"
       - yoga-test-docker: ">=0.1.1 <1.0.0"
+      - yoga-opentelemetry
